@@ -181,3 +181,27 @@ body.dark .auth-button:hover {
 .profile-remove-btn:hover {
     text-decoration: underline;
 }
+
+/* page- background image */
+.image-section {
+    flex: 1;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+    background-color: var(--image-background-color);
+}
+
+.page-image {
+    width: 200%;
+    height: 100%;
+    background-image: url('../../icons/auth/auth-page-bk-image.png');
+    background-size: cover;
+    background-position: left center;
+    clip-path: inset(0 50% 0 0);
+    /* cut right half */
+    position: absolute;
+    top: 0;
+    left: 0;
+}
