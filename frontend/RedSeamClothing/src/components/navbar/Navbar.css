@@ -2,7 +2,7 @@
 .navbar {
     display: flex;
     justify-content: space-between;
-    align-items: stretch;
+    align-items: center;
     padding: 0 2rem;
     height: 4.5rem;
     border-radius: 0 0 0.8rem 0.8rem;
@@ -41,87 +41,42 @@ body.dark .navbar-logo {
 .navbar-links {
     display: flex;
     gap: 0.5rem;
-    align-items: stretch;
-}
-
-/* Buttons */
-.nav-button {
-    flex: 0 0 auto;
-    display: flex;
     align-items: center;
-    padding: 0 1rem;
-    border: none;
-    background: transparent;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.3s, color 0.3s;
 }
 
-/* Light & Dark text colors */
-body.light .nav-button {
-    color: #444;
-}
-
-body.dark .nav-button {
-    color: #ddd;
-}
-
-/* Hover fills background like a tab */
-.nav-button:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-}
-
-body.dark .nav-button:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-/* Active tab look */
-.nav-button.active {
-    font-weight: 600;
-    background-color: rgba(0, 123, 255, 0.15);
-    color: var(--button-background-color);
-    border-bottom: 2px solid var(--button-background-color);
-}
-
-/* Special login button */
+/* Login button link container */
 .nav-button.login {
-    background-color: var(--button-background-color);
-    color: #fff;
-}
-
-.nav-button.login:hover {
-    background-color: var(--button-background-color);
-}
-
-body.dark .nav-button.login {
-    background-color: var(--button-background-color);
-}
-
-body.dark .nav-button.login:hover {
-    background-color: var(--button-background-color);
+    /* No padding, background, or border, just a container for the image */
+    padding: 0;
+    background: none;
+    border: none;
 }
 
 /* Theme toggle */
 .theme-toggle {
+    width: 2.5rem;
+    height: 2.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: none;
-    border: none;
-    font-size: 1.3rem;
+    background-color: transparent;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    font-size: 1rem;
     cursor: pointer;
     margin-left: 0.8rem;
-    transition: transform 0.2s, color 0.3s;
-}
-
-body.light .theme-toggle {
-    color: #222;
+    transition: background-color 0.3s, border-color 0.3s;
 }
 
 body.dark .theme-toggle {
+    border-color: #555;
     color: #f5f5f5;
 }
 
 .theme-toggle:hover {
-    transform: scale(1.1);
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+body.dark .theme-toggle:hover {
+    background-color: rgb(28, 27, 27)
 }

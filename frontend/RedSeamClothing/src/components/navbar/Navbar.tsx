@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
-import { useTheme } from '../../services/context/ThemeContext'; // Correct import
+import { useTheme } from '../../services/context/ThemeContext';
 import './Navbar.css';
+
+import loginIcon from '../../icons/auth/login-btn.png'; // Assuming you have a login icon at this path
 
 export default function Navbar()
 {
-    const { theme, toggleTheme } = useTheme(); // Correct way to access the theme context
+    const { theme, toggleTheme } = useTheme();
 
     return (
         <nav className="navbar">
@@ -12,10 +14,9 @@ export default function Navbar()
                 <h1>RedSeam Clothing</h1>
             </Link>
             <div className="navbar-links">
-                <Link to="/" className="nav-button">Home</Link>
-                <Link to="/about" className="nav-button">About</Link>
-                <Link to="/dashboard" className="nav-button">Dashboard</Link>
-                <Link to="/login" className="nav-button login">Login</Link>
+                <Link to="/login" className="nav-button login">
+                    <img src={loginIcon} alt="Login" style={{ width: '64px', height: '20px' }} />
+                </Link>
                 <button onClick={toggleTheme} className="theme-toggle">
                     {theme === 'dark' ? '🌙' : '🌞'}
                 </button>
