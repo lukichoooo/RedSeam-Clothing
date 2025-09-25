@@ -42,7 +42,6 @@ body.dark .navbar-logo {
     display: flex;
     gap: 0.5rem;
     align-items: stretch;
-    /* make buttons stretch full height */
 }
 
 /* Buttons */
@@ -50,9 +49,7 @@ body.dark .navbar-logo {
     flex: 0 0 auto;
     display: flex;
     align-items: center;
-    /* text centered vertically */
     padding: 0 1rem;
-    /* only horizontal padding */
     border: none;
     background: transparent;
     font-weight: 500;
@@ -82,26 +79,26 @@ body.dark .nav-button:hover {
 .nav-button.active {
     font-weight: 600;
     background-color: rgba(0, 123, 255, 0.15);
-    color: #007bff;
-    border-bottom: 2px solid #007bff;
+    color: var(--button-background-color);
+    border-bottom: 2px solid var(--button-background-color);
 }
 
 /* Special login button */
 .nav-button.login {
-    background-color: #007bff;
+    background-color: var(--button-background-color);
     color: #fff;
 }
 
 .nav-button.login:hover {
-    background-color: #0056b3;
+    background-color: var(--button-background-color);
 }
 
 body.dark .nav-button.login {
-    background-color: #0056b3;
+    background-color: var(--button-background-color);
 }
 
 body.dark .nav-button.login:hover {
-    background-color: #004080;
+    background-color: var(--button-background-color);
 }
 
 /* Theme toggle */

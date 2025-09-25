@@ -3,9 +3,9 @@ import Navbar from './components/navbar/Navbar';
 import Home from './pages/home/Home';
 import About from './pages/about/About';
 import Dashboard from './pages/dashboard/Dashboard';
-import Login from './pages/login/Login';
+import LoginPage from './pages/auth/LoginPage';
 import { ThemeProvider } from './services/context/ThemeContext';
-import './App.css';
+import RegistrationPage from './pages/auth/RegistrationPage';
 
 export default function App()
 {
@@ -16,7 +16,8 @@ export default function App()
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegistrationPage />} />
       </Routes>
     </ThemeProvider>
   );
