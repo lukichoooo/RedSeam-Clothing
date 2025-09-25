@@ -1,10 +1,15 @@
 /* Navbar */
 .navbar {
     display: flex;
+    flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    padding: 0 2rem;
-    height: 4.5rem;
+    height: 80px;
+    padding: 10px 100px;
+    margin: 0 auto;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
     border-radius: 0 0 0.8rem 0.8rem;
     transition: background-color 0.3s, box-shadow 0.3s;
 }
@@ -22,11 +27,15 @@ body.dark .navbar {
 /* Logo */
 .navbar-logo {
     display: flex;
+    flex-direction: row;
     align-items: center;
     text-decoration: none;
     font-weight: 700;
     letter-spacing: -0.3px;
     transition: color 0.3s;
+    width: fit-content;
+    height: fit-content;
+    gap: 4px;
 }
 
 body.light .navbar-logo {
@@ -46,7 +55,6 @@ body.dark .navbar-logo {
 
 /* Login button link container */
 .nav-button.login {
-    /* No padding, background, or border, just a container for the image */
     padding: 0;
     background: none;
     border: none;
@@ -78,5 +86,5 @@ body.dark .theme-toggle {
 }
 
 body.dark .theme-toggle:hover {
-    background-color: rgb(28, 27, 27)
+    background-color: rgba(255, 255, 255, 0.1);
 }
