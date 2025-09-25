@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import './AuthPage.css';
 import { Link } from 'react-router-dom';
 
+import passEyeIcon from '../../icons/auth/reveal-pass-img.png';
+
 const LoginPage: React.FC = () =>
 {
     const [showPassword, setShowPassword] = useState(false);
@@ -46,7 +48,10 @@ const LoginPage: React.FC = () =>
                                     className="password-toggle"
                                     onClick={togglePasswordVisibility}
                                 >
-                                    {showPassword ? 'Hide' : 'Show'}
+                                    <img
+                                        src={showPassword ? passEyeIcon : passEyeIcon}
+                                        style={{ scale: '0.5' }}
+                                    />
                                 </span>
                             </div>
                         </div>

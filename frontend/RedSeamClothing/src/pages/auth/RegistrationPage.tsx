@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import './AuthPage.css'; // This is your new combined CSS file
+import './AuthPage.css';
 import { Link } from 'react-router-dom';
+
+import passEyeIcon from '../../icons/auth/reveal-pass-img.png';
 
 const RegistrationPage: React.FC = () =>
 {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [profileImage, setProfileImage] = useState<string | null>(null);
 
     const togglePasswordVisibility = () =>
     {
@@ -15,6 +18,20 @@ const RegistrationPage: React.FC = () =>
     const toggleConfirmPasswordVisibility = () =>
     {
         setShowConfirmPassword(!showConfirmPassword);
+    };
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) =>
+    {
+        const file = e.target.files?.[0];
+        if (file)
+        {
+            setProfileImage(URL.createObjectURL(file));
+        }
+    };
+
+    const handleImageRemove = () =>
+    {
+        setProfileImage(null);
     };
 
     return (
@@ -28,6 +45,30 @@ const RegistrationPage: React.FC = () =>
                 <div className="form-content">
                     <h2>Registration</h2>
                     <form className="registration-form">
+                        <div className="profile-image-section">
+                            <div className="profile-image-container">
+                                {profileImage ? (
+                                    <img src={profileImage} alt="Profile" className="profile-image-preview" />
+                                ) : (
+                                    <div className="profile-image-placeholder"></div>
+                                )}
+                            </div>
+                            <div className="profile-image-buttons">
+                                <label htmlFor="profile-upload" className="profile-upload-btn">
+                                    Upload new
+                                </label>
+                                <input
+                                    type="file"
+                                    id="profile-upload"
+                                    accept="image/*"
+                                    onChange={handleImageUpload}
+                                    style={{ display: 'none' }}
+                                />
+                                <span onClick={handleImageRemove} className="profile-remove-btn">
+                                    Remove
+                                </span>
+                            </div>
+                        </div>
                         <div className="form-group">
                             <label htmlFor="username" />
                             <input type="text" id="username" name="username" placeholder="Username" required />
@@ -68,7 +109,10 @@ const RegistrationPage: React.FC = () =>
                                     className="password-toggle"
                                     onClick={toggleConfirmPasswordVisibility}
                                 >
-                                    {showConfirmPassword ? 'Hide' : 'Show'}
+                                    <img
+                                        src={showPassword ? passEyeIcon : passEyeIcon}
+                                        style={{ scale: '0.5' }}
+                                    />
                                 </span>
                             </div>
                         </div>

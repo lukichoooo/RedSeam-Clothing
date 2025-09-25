@@ -132,3 +132,52 @@ body.dark .auth-button:hover {
 .login-link a:hover {
     text-decoration: underline;
 }
+
+
+/* profile image */
+.profile-image-section {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.profile-image-container {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.profile-image-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-image-placeholder {
+    width: 100%;
+    height: 100%;
+}
+
+.profile-image-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.profile-upload-btn,
+.profile-remove-btn {
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.profile-upload-btn:hover,
+.profile-remove-btn:hover {
+    text-decoration: underline;
+}
