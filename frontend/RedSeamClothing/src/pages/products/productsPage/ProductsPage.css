@@ -1,9 +1,9 @@
 .products-page {
     width: 100%;
     max-width: 1720px;
-    max-height: 1932px;
     margin: 0 auto;
     padding: 20px;
+    padding-bottom: 120px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -11,6 +11,7 @@
     color: var(--text-color);
     transition: background-color var(--transition-speed) var(--transition-easing),
         color var(--transition-speed) var(--transition-easing);
+    min-height: 100vh;
 }
 
 /* Header */
@@ -27,9 +28,13 @@
 }
 
 .header-left h1 {
+    width: 190px;
+    height: 63px;
     font-weight: bold;
     font-size: 24px;
     color: var(--text-color);
+    display: flex;
+    align-items: center;
 }
 
 .header-right {
@@ -41,13 +46,16 @@
 
 .filter-btn,
 .sort-btn {
+    background-color: none !important;
+    border: none !important;
+    outline: none !important;
+    background: none;
     display: flex;
     align-items: center;
     gap: 5px;
     cursor: pointer;
     padding: 5px 10px;
     border: 1px solid var(--border-color);
-    background: var(--surface-color);
     color: var(--text-color);
     border-radius: 5px;
     transition: background-color var(--transition-speed) var(--transition-easing),
@@ -70,6 +78,16 @@
     justify-content: center;
 }
 
+body.dark .filter-btn .dropdown-icon {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+.filter-btn .dropdown-icon {
+    width: 24px;
+    height: 24px;
+    margin-left: 4px;
+}
+
 
 /* Product Card Dark Mode Example */
 .product-card {
@@ -89,24 +107,28 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 15px;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
 .pagination-controls button {
-    padding: 5px 10px;
+    padding: 6px 12px;
     cursor: pointer;
-    background-color: var(--button-background-color);
-    color: var(--button-text-color);
+    background-color: var(--surface-color);
+    color: var(--text-color);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
-    transition: background-color var(--transition-speed) var(--transition-easing),
-        color var(--transition-speed) var(--transition-easing),
-        border-color var(--transition-speed) var(--transition-easing);
+    transition: background-color 0.3s, border-color 0.3s, color 0.3s;
 }
 
 .pagination-controls button:hover {
     background-color: var(--button-hover-background-color);
     color: var(--button-text-color);
+}
+
+.pagination-controls .page-btn.active {
+    border: 2px solid var(--button-background-color);
+    font-weight: bold;
 }
 
 /* Mobile responsiveness */

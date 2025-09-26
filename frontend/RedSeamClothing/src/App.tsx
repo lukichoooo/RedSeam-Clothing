@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import Navbar from './components/navbar/Navbar';
-import ProductsPage from './pages/products/ProductsPage';
+import ProductsPage from './pages/products/productsPage/ProductsPage';
 import About from './pages/about/About';
 import LoginPage from './pages/auth/LoginPage';
 import { ThemeProvider } from './services/context/ThemeContext';
@@ -12,7 +12,7 @@ export default function App()
     <ThemeProvider>
       <Navbar />
       <Routes>
-        <Route path="/" element={< ProductsPage />} />
+        <Route path="/" element={<ProductsPage />} />
         <Route path="/about" element={<About />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegistrationPage />} />

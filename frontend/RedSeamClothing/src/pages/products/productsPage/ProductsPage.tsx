@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
-import ProductCard from './card/ProductCard';
+import ProductCard from '../card/ProductCard';
 import './ProductsPage.css';
+import Pagination from '../../../components/pagination.tsx/Pagination';
+import bwkBtn from '../../../icons/search/bkw-btn.png';
+import fwdBrn from '../../../icons/search/fwd-btn.png';
+import filterBtn from '../../../icons/search/filter-btn.png';
 
 interface Product
 {
@@ -44,8 +48,12 @@ const ProductsPage: React.FC = () =>
                         {mockProducts.length} results
                     </span>
                     <button className="filter-btn">
+                        <img
+                            className="dropdown-icon"
+                            src={filterBtn}
+                            alt="Filter Icon"
+                        />
                         <span>Filter</span>
-                        <span className="dropdown-icon">▼</span>
                     </button>
                     <button className="sort-btn">
                         <span>Sort By</span>
@@ -67,24 +75,15 @@ const ProductsPage: React.FC = () =>
             </div>
 
             {/* Pagination */}
-            <div className="pagination-controls">
-                <button
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((p) => p - 1)}
-                >
-                    Prev
-                </button>
-                <span>
-                    {currentPage} / {totalPages}
-                </span>
-                <button
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage((p) => p + 1)}
-                >
-                    Next
-                </button>
-            </div>
-        </div>
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                prevImg={bwkBtn}
+                nextImg={fwdBrn}
+            />
+
+        </div >
     );
 };
 

@@ -2,7 +2,7 @@
 
 import api from './api';
 
-const API_URL = 'https://api.your-domain.com/profile'; // TODO: Replace with your actual API URL
+// const API_URL = 'https://api.your-domain.com/profile'; // TODO: Replace with your actual API URL
 
 export const uploadProfileImage = async (file: File): Promise<any> =>
 {

@@ -1,0 +1,54 @@
+/* Pagination Container */
+.pagination-controls {
+    display: flex;
+    /* horizontal flow */
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    height: fit-content;
+    gap: 8px;
+    margin: 20px auto;
+}
+
+.page-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+
+.pagination-controls button {
+    background: none;
+    border: none;
+    box-shadow: none;
+    color: var(--text-color);
+    cursor: pointer;
+    padding: 0.5em 0.8em;
+    font-size: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, border 0.2s, background-color 0.2s, color 0.2s;
+}
+
+/* Light mode active page */
+.page-btn.active {
+    border-radius: var(--border-radius);
+    font-weight: bold;
+    background-color: transparent;
+    color: #000;
+    transform: scale(1.1);
+}
+
+body.dark .page-btn.active {
+    color: #fff;
+}
+
+.page-btn:not(.active):hover {
+    background-color: var(--hover-color);
+    color: var(--text-color);
+    border-radius: var(--border-radius);
+}
+
+body.dark .edge-btn img {
+    filter: invert(1) hue-rotate(180deg);
+}

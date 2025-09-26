@@ -38,6 +38,16 @@ body.dark .navbar {
     gap: 4px;
 }
 
+/* Normal logo image */
+.navbar-logo img {
+    transition: filter 0.3s ease;
+}
+
+/* Dark mode inversion */
+body.dark .navbar-logo img {
+    filter: invert(1) hue-rotate(180deg);
+}
+
 body.light .navbar-logo {
     color: #222;
 }
@@ -59,6 +69,18 @@ body.dark .navbar-logo {
     background: none;
     border: none;
 }
+
+/* Normal login icon */
+.nav-button.login img {
+    filter: none;
+    transition: filter 0.3s ease;
+}
+
+/* Dark mode inversion (same as logo) */
+body.dark .nav-button.login img {
+    filter: invert(1) hue-rotate(180deg);
+}
+
 
 /* Theme toggle */
 .theme-toggle {
