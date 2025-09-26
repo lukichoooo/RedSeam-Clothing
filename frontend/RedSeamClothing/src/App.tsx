@@ -6,6 +6,7 @@ import LoginPage from './pages/auth/LoginPage';
 import { ThemeProvider } from './services/context/ThemeContext';
 import RegistrationPage from './pages/auth/RegistrationPage';
 import ProductPage from './pages/products/productPage/ProductPage';
+import CheckoutPage from './pages/products/checkout/CheckoutPage';
 
 export default function App()
 {
@@ -16,6 +17,7 @@ export default function App()
         {/* Product Routes */}
         <Route path="/" element={<ProductsPage />} />
         <Route path="/product/:id" element={<ProductPage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
 
         {/* Static Routes */}
         <Route path="/about" element={<About />} />
