@@ -12,6 +12,35 @@ const LoginPage: React.FC = () =>
     {
         setShowPassword(!showPassword);
     };
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) =>
+    {
+        e.preventDefault(); // prevent page refresh
+
+        const form = e.currentTarget;
+        const email = (form.email as HTMLInputElement).value.trim();
+        const password = (form.password as HTMLInputElement).value;
+
+        // ✅ Validation
+        if (email.length < 3)
+        {
+            alert("Email must be at least 3 characters.");
+            return;
+        }
+
+        if (!/\S+@\S+\.\S+/.test(email))
+        {
+            alert("Please enter a valid email.");
+            return;
+        }
+
+        if (password.length < 3)
+        {
+            alert("Password must be at least 3 characters.");
+            return;
+        }
+
+        // TODO: send to backend
+    };
 
     return (
         <div className="page-container">
@@ -23,7 +52,7 @@ const LoginPage: React.FC = () =>
             <div className="form-section">
                 <div className="form-content">
                     <h2>Log In</h2>
-                    <form className="login-form">
+                    <form className="login-form" onSubmit={handleSubmit}>
                         <div className="form-group">
                             <label htmlFor="email" />
                             <input
