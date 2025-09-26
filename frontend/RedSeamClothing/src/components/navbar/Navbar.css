@@ -24,23 +24,28 @@ body.dark .navbar {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 }
 
-/* Logo */
 .navbar-logo {
     display: flex;
-    flex-direction: row;
     align-items: center;
-    text-decoration: none;
+    justify-content: flex-start;
+    /* optional */
+    width: 180px;
+    height: 24px;
+    /* desired height */
     font-weight: 700;
     letter-spacing: -0.3px;
-    transition: color 0.3s;
-    width: fit-content;
-    height: fit-content;
     gap: 4px;
+    overflow: hidden;
+    /* prevent children from breaking the height */
 }
 
-/* Normal logo image */
 .navbar-logo img {
+    height: 100%;
+    /* make image scale to parent height */
+    width: auto;
+    /* maintain aspect ratio */
     transition: filter 0.3s ease;
+
 }
 
 /* Dark mode inversion */

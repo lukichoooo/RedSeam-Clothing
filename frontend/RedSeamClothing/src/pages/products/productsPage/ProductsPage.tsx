@@ -25,7 +25,7 @@ const mockProducts: Product[] = Array.from({ length: 100 }, (_, i) => ({
 const ProductsPage: React.FC = () =>
 {
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 12; // 4 columns x 3 rows
+    const itemsPerPage = 10; // 4 columns x 3 rows
 
     const totalPages = Math.ceil(mockProducts.length / itemsPerPage);
 
@@ -47,6 +47,7 @@ const ProductsPage: React.FC = () =>
                         {Math.min(currentPage * itemsPerPage, mockProducts.length)} of{' '}
                         {mockProducts.length} results
                     </span>
+                    |
                     <button className="filter-btn">
                         <img
                             className="dropdown-icon"
@@ -67,6 +68,7 @@ const ProductsPage: React.FC = () =>
                 {currentItems.map((product) => (
                     <ProductCard
                         key={product.id}
+                        id={product.id}
                         name={product.name}
                         price={product.price}
                         imageUrl={product.imageUrl}

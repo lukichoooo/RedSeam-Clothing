@@ -3,6 +3,7 @@ import './AuthPage.css';
 import { Link } from 'react-router-dom';
 
 import passEyeIcon from '../../icons/auth/reveal-pass-img.png';
+import bgImage from '../../icons/auth/auth-page-bk-image.png';
 
 const RegistrationPage: React.FC = () =>
 {
@@ -104,7 +105,10 @@ const RegistrationPage: React.FC = () =>
         <div className="page-container">
             <div className="image-section">
                 <div className="page-image">
-                    {/* TODO: Add image here */}
+                    <div
+                        className="page-image"
+                        style={{ backgroundImage: `url(${bgImage})` }}
+                    ></div>
                 </div>
             </div>
             <div className="form-section">

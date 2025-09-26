@@ -5,6 +5,7 @@ import About from './pages/about/About';
 import LoginPage from './pages/auth/LoginPage';
 import { ThemeProvider } from './services/context/ThemeContext';
 import RegistrationPage from './pages/auth/RegistrationPage';
+import ProductPage from './pages/products/productPage/ProductPage';
 
 export default function App()
 {
@@ -12,8 +13,14 @@ export default function App()
     <ThemeProvider>
       <Navbar />
       <Routes>
+        {/* Product Routes */}
         <Route path="/" element={<ProductsPage />} />
+        <Route path="/product/:id" element={<ProductPage />} />
+
+        {/* Static Routes */}
         <Route path="/about" element={<About />} />
+
+        {/* Auth Routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegistrationPage />} />
       </Routes>
