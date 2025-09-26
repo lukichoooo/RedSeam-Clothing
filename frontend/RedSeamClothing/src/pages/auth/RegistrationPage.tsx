@@ -25,14 +25,80 @@ const RegistrationPage: React.FC = () =>
         const file = e.target.files?.[0];
         if (file)
         {
+            const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+            const maxSize = 2 * 1024 * 1024; // 2MB
+
+            if (!validTypes.includes(file.type))
+            {
+                alert('Only JPG, PNG, and WEBP images are allowed.');
+                return;
+            }
+            if (file.size > maxSize)
+            {
+                alert('File size must be under 2MB.');
+                return;
+            }
+
             setProfileImage(URL.createObjectURL(file));
         }
     };
+
 
     const handleImageRemove = () =>
     {
         setProfileImage(null);
     };
+
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) =>
+    {
+        e.preventDefault();
+
+        const form = e.currentTarget;
+        const username = (form.username as HTMLInputElement).value.trim();
+        const email = (form.email as HTMLInputElement).value.trim();
+        const password = (form.password as HTMLInputElement).value;
+        const confirmPassword = (form["confirm-password"] as HTMLInputElement).value;
+
+        // ✅ Validation
+        if (username.length < 3)
+        {
+            alert("Username must be at least 3 characters.");
+            return;
+        }
+
+        if (!/\S+@\S+\.\S+/.test(email))
+        {
+            alert("Please enter a valid email.");
+            return;
+        }
+
+        if (password.length < 3)
+        {
+            alert("Password must be at least 3 characters.");
+            return;
+        }
+
+        if (password !== confirmPassword)
+        {
+            alert("Passwords do not match.");
+            return;
+        }
+
+        // Prepare form data (works with or without avatar)
+        const formData = new FormData();
+        formData.append("username", username);
+        formData.append("email", email);
+        formData.append("password", password);
+
+        if (form.profileUpload?.files?.[0])
+        {
+            formData.append("avatar", form.profileUpload.files[0]);
+        }
+
+        // TODO: Send formData to backend via fetch/axios
+    };
+
+
 
     return (
         <div className="page-container">
@@ -44,7 +110,7 @@ const RegistrationPage: React.FC = () =>
             <div className="form-section">
                 <div className="form-content">
                     <h2>Registration</h2>
-                    <form className="registration-form">
+                    <form className="registration-form" onSubmit={handleSubmit}>
                         <div className="profile-image-section">
                             <div className="profile-image-container">
                                 {profileImage ? (
