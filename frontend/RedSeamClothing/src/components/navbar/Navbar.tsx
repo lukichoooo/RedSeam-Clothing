@@ -26,11 +26,18 @@ export default function Navbar()
 
     useEffect(() =>
     {
+
         setUser(userService.getUserFromLocalStorage());
     }, []);
 
     const openCart = () => setIsCartOpen(true);
     const closeCart = () => setIsCartOpen(false);
+
+    const handleLogout = () =>
+    {
+        authenticationService.logout();
+        window.location.reload();
+    };
 
     const isLoggedIn = !!user;
 
@@ -48,23 +55,27 @@ export default function Navbar()
                             alt="Shopping Cart"
                             className="cart-icon"
                         />
-                        <img
-                            src={user!.profile_photo || defaultAvatar}
-                            alt={`${user!.name || 'User'} Avatar`}
-                            className="user-avatar"
-                        />
-                        <img
-                            onClick={() => setIsDropdownOpen(c => !c)}
-                            src={dropdownIcon}
-                            alt="Shopping Cart"
-                        />
-                        {isDropdownOpen && (
-                            <div className="dropdown">
-                                <button onClick={() => authenticationService.logout()} className="logout-button">
-                                    Logut
-                                </button>
-                            </div>
-                        )}
+                        <div className="user-menu-container">
+                            <img
+                                src={user!.profile_photo || defaultAvatar}
+                                alt={`${user!.name || 'User'} Avatar`}
+                                className="user-avatar"
+                                onClick={() => setIsDropdownOpen(c => !c)}
+                            />
+                            <img
+                                onClick={() => setIsDropdownOpen(c => !c)}
+                                src={dropdownIcon}
+                                alt="Toggle Dropdown"
+                                className="dropdown-icon"
+                            />
+                            {isDropdownOpen && (
+                                <div className="dropdown-menu">
+                                    <button onClick={handleLogout} className="logout-button">
+                                        Logout
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                         <CartSidebar isOpen={isCartOpen} onClose={closeCart} />
                     </>
                 ) : (

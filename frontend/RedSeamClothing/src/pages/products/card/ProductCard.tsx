@@ -11,7 +11,7 @@ type ProductCardProps = {
 
 const PLACEHOLDER_IMAGE = "https://via.placeholder.com/412x549.png?text=Image+Not+Available";
 
-const ProductCard: React.FC<ProductCardProps> = ({ id, name, price, image: image }) =>
+const ProductCard: React.FC<ProductCardProps> = ({ id, name, price, image }) =>
 {
     const finalImageUrl = image && image.startsWith('http') ? image : PLACEHOLDER_IMAGE;
 
