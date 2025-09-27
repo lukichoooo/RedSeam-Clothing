@@ -1,32 +1,15 @@
-import React, { createContext, useContext, useState } from "react";
-
-interface CartItem
+import React, { createContext, useContext, useState, useEffect } from "react";
+// Import API methods from the separate file
+import { cartApi } from '../user/cartApi';
+// Import all necessary types and the mapping function
+import
 {
-    id: number;
-    name: string;
-    price: number;
-    quantity: number;
-}
-
-interface CartContextType
-{
-    items: CartItem[];
-    addToCart: (item: CartItem) => void;
-    updateQuantity: (id: number, newQuantity: number) => void;
-    removeFromCart: (id: number) => void;
-}
-
-interface CartItem
-{
-    id: number;
-    name: string;
-    price: number;
-    quantity: number;
-    image?: string;
-    color?: string;
-    size?: string;
-}
-
+    type CartItem,
+    type ProductData,
+    type AddToCartPayload,
+    type CartContextType,
+    mapResponseToCartItem
+} from '../user/cart.types';
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
@@ -34,35 +17,98 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 {
     const [items, setItems] = useState<CartItem[]>([]);
 
-    const addToCart = (item: CartItem) =>
+    const fetchCart = async () =>
     {
-        setItems((prev) =>
+        try
         {
-            const existing = prev.find((i) => i.id === item.id);
-            if (existing)
-            {
-                return prev.map((i) =>
-                    i.id === item.id ? { ...i, quantity: i.quantity + item.quantity } : i
-                );
-            }
-            return [...prev, item];
-        });
+            const cartItems = await cartApi.fetchCart();
+            const localItems = cartItems.map(mapResponseToCartItem);
+            setItems(localItems);
+        } catch (error)
+        {
+            console.error("Failed to fetch cart:", error);
+        }
     };
 
-    const updateQuantity = (id: number, newQuantity: number) =>
+    const addToCart = async (productData: ProductData) =>
     {
-        setItems((prev) =>
-            prev.map((i) => (i.id === id ? { ...i, quantity: Math.max(newQuantity, 1) } : i))
-        );
+        const { id, color, size, quantity } = productData;
+
+        const payload: AddToCartPayload = {
+            quantity,
+            color,
+            size
+        };
+
+        try
+        {
+            // Call API to add product
+            await cartApi.addProductToCart(id, payload);
+
+            await fetchCart();
+
+        } catch (error)
+        {
+            console.error(`Failed to add product ${id} to cart:`, error);
+            // Handle error (e.g., product out of stock)
+        }
     };
 
-    const removeFromCart = (id: number) =>
+    const updateQuantity = async (id: number, newQuantity: number) =>
     {
-        setItems((prev) => prev.filter((i) => i.id !== id));
+        const validQuantity = Math.max(1, newQuantity);
+
+        try
+        {
+            await cartApi.updateProductQuantity(id, validQuantity);
+
+            await fetchCart();
+
+        } catch (error)
+        {
+            console.error(`Failed to update quantity for product ${id}:`, error);
+        }
     };
+
+    const removeFromCart = async (id: number) =>
+    {
+        try
+        {
+            // Call API to remove product
+            await cartApi.removeProductFromCart(id);
+
+            // Re-fetch the entire cart
+            await fetchCart();
+
+        } catch (error)
+        {
+            console.error(`Failed to remove product ${id} from cart:`, error);
+        }
+    };
+
+    const checkout = async (): Promise<{ success: boolean; message: string }> =>
+    {
+        try
+        {
+            const response = await cartApi.checkout();
+            // Clear local state upon successful checkout
+            setItems([]);
+            return { success: true, message: response.message };
+        } catch (error)
+        {
+            console.error("Checkout failed:", error);
+            return { success: false, message: "Checkout failed. Please try again." };
+        }
+    };
+
+    // Initial cart load when provider mounts
+    useEffect(() =>
+    {
+        fetchCart();
+    }, []);
 
     return (
-        <CartContext.Provider value={{ items, addToCart, updateQuantity, removeFromCart }}>
+        <CartContext.Provider value={{ items, fetchCart, addToCart, updateQuantity, removeFromCart, checkout }}>
             {children}
         </CartContext.Provider>
     );

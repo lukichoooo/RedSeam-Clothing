@@ -1,11 +1,11 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useCart } from "../../../services/context/CartContext"; // <- import hook
+import { useCart } from "../../../services/context/CartContext";
 import "./CartSidebar.css";
 
 const CartSidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) =>
 {
-    const { items, updateQuantity, removeFromCart } = useCart(); // <- get cart data & handlers
+    const { items, updateQuantity, removeFromCart } = useCart();
     const navigate = useNavigate();
 
     const delivery = 10;
@@ -45,19 +45,29 @@ const CartSidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
             </div>
 
             <div className="cart-items">
-                {items.map(item => (
-                    <div key={item.id} className="cart-item">
-                        <div className="cart-item-info">
-                            <strong>{item.name}</strong> - ${item.price}
+                {items.map(item =>
+                {
+                    const itemWithVariants = item as { id: number, name: string, price: number, quantity: number, color?: string, size?: string };
+
+                    const itemColor = itemWithVariants.color || 'NoColor';
+                    const itemSize = itemWithVariants.size || 'NoSize';
+
+                    const uniqueKey = `${item.id}-${itemColor}-${itemSize}`;
+
+                    return (
+                        <div key={uniqueKey} className="cart-item">
+                            <div className="cart-item-info">
+                                <strong>{item.name}</strong> - ${item.price}
+                            </div>
+                            <div className="cart-item-controls">
+                                <button onClick={() => updateQuantity(item.id, item.quantity - 1)}>-</button>
+                                <span>{item.quantity}</span>
+                                <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</button>
+                                <button className="remove-btn" onClick={() => removeFromCart(item.id)}>Remove</button>
+                            </div>
                         </div>
-                        <div className="cart-item-controls">
-                            <button onClick={() => updateQuantity(item.id, item.quantity - 1)}>-</button>
-                            <span>{item.quantity}</span>
-                            <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</button>
-                            <button className="remove-btn" onClick={() => removeFromCart(item.id)}>Remove</button>
-                        </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             <div className="cart-footer">

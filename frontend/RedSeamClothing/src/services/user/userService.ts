@@ -1,5 +1,6 @@
-import { type User } from "../../types";
+import { type User } from "./user.types";
 
+// ususally fetched form backend
 const userService = {
     getUserFromLocalStorage(): User | null
     {
@@ -14,6 +15,11 @@ const userService = {
     setUserToLocalStorage(user: User): void
     {
         localStorage.setItem('user', JSON.stringify(user));
+    },
+
+    getUserAvatar(): undefined | string
+    {
+        return userService.getUserFromLocalStorage()?.profile_photo;
     }
 };
 

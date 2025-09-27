@@ -1,89 +1,143 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import { useCart } from "../../../services/context/CartContext"; // adjust path
+import { useCart } from "../../../services/context/CartContext";
 import CartSidebar from "../cartSidebar/CartSidebar";
 import "./ProductPage.css";
+import type { ProductData } from "../../../services/user/cart.types";
+import { productsApi, type DetailedProductResponse } from "../../../services/productsApi";
+import axios from "axios";
 
-interface Product
+// --- Utility Function to Fix Image URLs ---
+const IMAGE_BASE_URL = 'https://api.redseam.redberryinternship.ge';
+
+const getAbsoluteImageUrl = (path: string | undefined): string =>
 {
-    id: number;
-    name: string;
-    price: number;
-    brand: string;
-    images: string[];
-    colors: string[];
-    sizes: string[];
-}
-
-// Mock products
-const mockProducts: Product[] = [
+    if (!path) return '';
+    // Check if the path is already absolute (starts with http)
+    if (path.startsWith('http'))
     {
-        id: 1,
-        name: "Example Product 1",
-        price: 99,
-        brand: "Brand A",
-        images: [
-            "https://via.placeholder.com/703x937.png?text=1",
-            "https://via.placeholder.com/703x937.png?text=2",
-            "https://via.placeholder.com/703x937.png?text=3",
-        ],
-        colors: ["red", "blue", "green"],
-        sizes: ["S", "M", "L", "XL"],
-    },
-    {
-        id: 2,
-        name: "Example Product 2",
-        price: 55,
-        brand: "Brand B",
-        images: [
-            "https://via.placeholder.com/703x937.png?text=1",
-            "https://via.placeholder.com/703x937.png?text=2",
-            "https://via.placeholder.com/703x937.png?text=3",
-        ],
-        colors: ["red", "blue", "yellow"],
-        sizes: ["S", "M", "L", "XL"],
-    },
-];
+        return path;
+    }
+    // Prepend the base URL for relative paths
+    return `${IMAGE_BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
+};
+// ------------------------------------------
 
 const ProductPage: React.FC = () =>
 {
     const { id } = useParams<{ id: string }>();
-    const product = mockProducts.find((p) => p.id === Number(id));
+    const productId = Number(id);
 
-    const [selectedImage, setSelectedImage] = useState(product?.images[0] ?? "");
-    const [selectedColor, setSelectedColor] = useState(product?.colors[0] ?? "");
-    const [selectedSize, setSelectedSize] = useState(product?.sizes[0] ?? "");
+    const [product, setProduct] = useState<DetailedProductResponse | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const [selectedImage, setSelectedImage] = useState("");
+    const [selectedColor, setSelectedColor] = useState("");
+    const [selectedSize, setSelectedSize] = useState("");
     const [quantity, setQuantity] = useState(1);
 
-    // Cart context
-    const { items, addToCart, updateQuantity, removeFromCart } = useCart();
+    const { addToCart } = useCart();
     const [isSidebarOpen, setSidebarOpen] = useState(false);
 
-    if (!product) return <div>Product not found</div>;
-
-    const handleAddToCart = () =>
+    useEffect(() =>
     {
-        addToCart({
+        if (isNaN(productId))
+        {
+            setError("Invalid Product ID.");
+            setLoading(false);
+            return;
+        }
+
+        const loadProduct = async () =>
+        {
+            setLoading(true);
+            setError(null);
+            try
+            {
+                const fetchedProduct = await productsApi.fetchProductById(productId);
+
+                setProduct(fetchedProduct);
+
+                const availableImages = fetchedProduct.images || (fetchedProduct.cover_image ? [fetchedProduct.cover_image] : []);
+
+                setQuantity(1);
+
+                // Set initial image using the new utility
+                setSelectedImage(getAbsoluteImageUrl(availableImages[0]));
+
+                setSelectedColor("red");
+                setSelectedSize("S");
+
+            } catch (err)
+            {
+                if (axios.isAxiosError(err) && err.response?.status === 404)
+                {
+                    setError("Product not found.");
+                } else
+                {
+                    setError("Failed to load product data.");
+                }
+                console.error("Fetch error:", err);
+            } finally
+            {
+                setLoading(false);
+            }
+        };
+
+        loadProduct();
+    }, [productId]);
+
+    const handleAddToCart = useCallback(async () =>
+    {
+        if (!product) return;
+
+        if (!selectedColor || !selectedSize || quantity < 1)
+        {
+            alert("Please select a color, size, and quantity.");
+            return;
+        }
+
+        const payload: ProductData = {
             id: product.id,
-            name: product.name,
-            price: product.price,
+            color: selectedColor,
+            size: selectedSize,
             quantity,
-        });
-        setSidebarOpen(true); // open sidebar after adding
-    };
+        };
+
+        try
+        {
+            await addToCart(payload);
+            setSidebarOpen(true);
+        } catch (e)
+        {
+            console.error("Error adding to cart:", e);
+            alert("Could not add product to cart. Please try again.");
+        }
+    }, [product, selectedColor, selectedSize, quantity, addToCart]);
+
+    if (loading) return <div className="product-page-loading">Loading product details...</div>;
+    if (error) return <div className="product-page-error">Error: {error}</div>;
+    if (!product) return null;
+
+    const productColors = ["red", "blue", "green", "black"];
+    const productSizes = ["S", "M", "L", "XL"];
+
+    // Process all images to ensure they are absolute URLs
+    const rawProductImages = product.images || (product.cover_image ? [product.cover_image] : []);
+    const productImages = rawProductImages.map(getAbsoluteImageUrl);
 
     return (
         <>
             <div className="product-page">
-                {/* Left: Images */}
                 <div className="product-page-left">
                     <div className="thumbnail-list">
-                        {product.images.map((img, idx) => (
+                        {productImages.map((img, idx) => (
                             <img
                                 key={idx}
                                 src={img}
                                 className={img === selectedImage ? "selected" : ""}
-                                alt={`Thumbnail ${idx + 1}`}
+                                alt={`${product.name} thumbnail ${idx + 1}`}
                                 onClick={() => setSelectedImage(img)}
                             />
                         ))}
@@ -93,19 +147,21 @@ const ProductPage: React.FC = () =>
                     </div>
                 </div>
 
-                {/* Right: Product info */}
                 <div className="product-page-right">
                     <h1>{product.name}</h1>
-                    <div className="product-price">${product.price}</div>
+                    <div className="product-brand">{product.brand.name}</div>
+                    <div className="product-price">${product.price.toFixed(2)}</div>
 
                     <div className="product-color">
-                        Color:
+                        <span className="label">Color:</span>
+                        <span className="current-selection">{selectedColor}</span>
                         <div className="color-options">
-                            {product.colors.map((color, idx) => (
+                            {productColors.map((color, idx) => (
                                 <span
                                     key={idx}
                                     style={{ backgroundColor: color }}
-                                    className={color === selectedColor ? "selected" : ""}
+                                    className={`color-swatch ${color === selectedColor ? "selected" : ""}`}
+                                    title={color}
                                     onClick={() => setSelectedColor(color)}
                                 ></span>
                             ))}
@@ -113,12 +169,12 @@ const ProductPage: React.FC = () =>
                     </div>
 
                     <div className="product-size">
-                        Size:
+                        <span className="label">Size:</span>
                         <select
                             value={selectedSize}
                             onChange={(e) => setSelectedSize(e.target.value)}
                         >
-                            {product.sizes.map((size, idx) => (
+                            {productSizes.map((size, idx) => (
                                 <option key={idx} value={size}>
                                     {size}
                                 </option>
@@ -127,12 +183,12 @@ const ProductPage: React.FC = () =>
                     </div>
 
                     <div className="product-quantity">
-                        Quantity:
+                        <span className="label">Quantity:</span>
                         <select
                             value={quantity}
                             onChange={(e) => setQuantity(Number(e.target.value))}
                         >
-                            {Array.from({ length: 10 }, (_, i) => i + 1).map((q) => (
+                            {Array.from({ length: Math.min(10, product.quantity) }, (_, i) => i + 1).map((q) => (
                                 <option key={q} value={q}>
                                     {q}
                                 </option>
@@ -140,18 +196,21 @@ const ProductPage: React.FC = () =>
                         </select>
                     </div>
 
-                    <button className="add-to-cart" onClick={handleAddToCart}>
+                    <button
+                        className="add-to-cart"
+                        onClick={handleAddToCart}
+                        disabled={!selectedColor || !selectedSize || quantity < 1}
+                    >
                         Add to Cart
                     </button>
 
                     <div className="product-details">
-                        <h3>Details:</h3>
-                        <p>Brand: {product.brand}</p>
+                        <h3>Product Details</h3>
+                        <p>{product.description}</p>
                     </div>
                 </div>
             </div>
 
-            {/* Sidebar */}
             <CartSidebar
                 isOpen={isSidebarOpen}
                 onClose={() => setSidebarOpen(false)}

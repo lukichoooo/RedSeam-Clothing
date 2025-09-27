@@ -4,7 +4,9 @@ import { Link, useNavigate } from "react-router-dom";
 
 import passEyeIcon from "../../icons/auth/reveal-pass-img.png";
 import bgImage from "../../icons/auth/auth-page-bk-image.png";
+
 import authenticationService from "../../services/user/authenticationService";
+import userService from '../../services/user/userService';
 
 const LoginPage: React.FC = () =>
 {
@@ -24,7 +26,6 @@ const LoginPage: React.FC = () =>
         const email = (form.email as HTMLInputElement).value.trim();
         const password = (form.password as HTMLInputElement).value;
 
-        // ✅ validation
         if (!/\S+@\S+\.\S+/.test(email))
         {
             alert("Please enter a valid email.");
@@ -41,9 +42,9 @@ const LoginPage: React.FC = () =>
             const res = await authenticationService.login({ email, password });
 
             localStorage.setItem("token", res.token);
-            localStorage.setItem("user", JSON.stringify(res.user));
-
+            userService.setUserToLocalStorage(res.user);
             navigate("/");
+
         } catch (err: any)
         {
             if (err.response?.status === 401)

@@ -1,13 +1,13 @@
-import type { User } from "../../types";
-import api from "./api";
+import type { User } from "./user.types";
+import api from "../api";
 
 export interface LoginResponse
 {
     user: {
         email: string;
+        id: number;
         name: string;
         profile_photo: string;
-        id: number;
     };
     token: string;
 }
@@ -60,6 +60,14 @@ const authenticationService = {
         return data;
     },
 
+    // Logout
+    logout: async (): Promise<void> =>
+    {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        await api.post("/logout");
+    },
+
     // Check if user is logged in
     isLoggedIn: (): boolean =>
     {
@@ -71,25 +79,6 @@ const authenticationService = {
     {
         return localStorage.getItem("token");
     },
-
-
-    getCurrentUser: async (): Promise<User> =>
-    {
-        try
-        {
-            const response = await api.get<{ user: User }>('/profile', {
-                headers: {
-                    Accept: 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('token')}`,
-                },
-            });
-            return response.data.user;
-        } catch (error)
-        {
-            console.error('Error fetching current user data:', error);
-            throw error;
-        }
-    }
 };
 
 export default authenticationService;

@@ -1,43 +1,26 @@
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../services/context/ThemeContext';
 import { useState, useEffect } from 'react';
-import { type User } from '../../types';
+import { type User } from '../../services/user/user.types';
 import './Navbar.css';
 
 import loginIcon from '../../icons/navbar/login-btn.png';
 import cartIcon from '../../icons/navbar/cart-icon.png';
+import dropdownIcon from '../../icons/navbar/dropdown-icon.png';
 import brandLogo from '../../icons/brand/redseam-logo.png';
-import authenticationService from '../../services/user/authenticationService';
+
 import CartSidebar from '../../pages/products/cartSidebar/CartSidebar';
+
 import defaultAvatar from '../../icons/navbar/default-avatar.png';
 import userService from '../../services/user/userService';
-
-const getUserFromLocalStorage = (): User | null =>
-{
-    if (!authenticationService.isLoggedIn())
-    {
-        return null;
-    }
-    const userString = localStorage.getItem('user');
-
-    if (userString)
-    {
-        try
-        {
-            return JSON.parse(userString) as User;
-        } catch (error)
-        {
-            console.error('Error parsing user data from localStorage:', error);
-            return null;
-        }
-    }
-    return null;
-};
+import authenticationService from '../../services/user/authenticationService';
 
 export default function Navbar()
 {
     const { theme, toggleTheme } = useTheme();
     const [isCartOpen, setIsCartOpen] = useState(false);
+
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     const [user, setUser] = useState<User | null>(null);
 
@@ -70,6 +53,18 @@ export default function Navbar()
                             alt={`${user!.name || 'User'} Avatar`}
                             className="user-avatar"
                         />
+                        <img
+                            onClick={() => setIsDropdownOpen(c => !c)}
+                            src={dropdownIcon}
+                            alt="Shopping Cart"
+                        />
+                        {isDropdownOpen && (
+                            <div className="dropdown">
+                                <button onClick={() => authenticationService.logout()} className="logout-button">
+                                    Logut
+                                </button>
+                            </div>
+                        )}
                         <CartSidebar isOpen={isCartOpen} onClose={closeCart} />
                     </>
                 ) : (

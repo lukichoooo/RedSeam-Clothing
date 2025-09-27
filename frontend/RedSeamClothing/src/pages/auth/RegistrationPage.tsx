@@ -156,7 +156,10 @@ const RegistrationPage: React.FC = () =>
                                     className="password-toggle"
                                     onClick={togglePasswordVisibility}
                                 >
-                                    {showPassword ? 'Hide' : 'Show'}
+                                    <img
+                                        src={passEyeIcon}
+                                        style={{ scale: '0.5' }}
+                                    />
                                 </span>
                             </div>
                         </div>
@@ -175,7 +178,7 @@ const RegistrationPage: React.FC = () =>
                                     onClick={toggleConfirmPasswordVisibility}
                                 >
                                     <img
-                                        src={showPassword ? passEyeIcon : passEyeIcon}
+                                        src={passEyeIcon}
                                         style={{ scale: '0.5' }}
                                     />
                                 </span>
