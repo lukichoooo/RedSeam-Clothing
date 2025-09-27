@@ -64,7 +64,6 @@ const authenticationService = {
     {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-        await api.post("/logout");
     },
 
     // Check if user is logged in
