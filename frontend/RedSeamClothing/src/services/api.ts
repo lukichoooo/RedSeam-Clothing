@@ -1,8 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://api.redseam.redberryinternship.ge/api';
+const API_BASE_URL = import.meta.env.VITE_BASE_API || 'http://localhost:3000/api';
 
-// Create an Axios instance with a base URL.
 const api = axios.create({
     baseURL: API_BASE_URL,
     headers: {

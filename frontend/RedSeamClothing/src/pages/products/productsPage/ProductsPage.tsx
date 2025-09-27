@@ -7,10 +7,8 @@ import fwdBrn from '../../../icons/search/fwd-btn.png';
 import filterBtn from '../../../icons/search/filter-btn.png';
 import productsApi, { type Data, type Links, type Meta, type productsListQuery, type ProductsListResponse } from '../../../services/products/productsApi';
 
-// --- Define the correct base URL for images ---
 const IMAGE_BASE_URL = 'https://api.redseam.redberryinternship.ge';
 
-// Utility function to convert relative paths to absolute URLs
 const getAbsoluteImageUrl = (path: string | undefined): string =>
 {
     if (!path || path.startsWith('http'))
@@ -20,7 +18,6 @@ const getAbsoluteImageUrl = (path: string | undefined): string =>
     return `${IMAGE_BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
 };
 
-// Define the available sort options
 const sortOptions = [
     { label: 'Newest', value: '-created_at' },
     { label: 'Oldest', value: 'created_at' },
@@ -30,84 +27,61 @@ const sortOptions = [
 
 const ProductsPage: React.FC = () =>
 {
-    // ... (Data and Meta states)
     const [data, setData] = useState<Data[]>([]);
-    const [links, setLinks] = useState<Links | null>(null);
     const [meta, setMeta] = useState<Meta | null>(null);
 
-    // State for main filters and sorting (triggers API call)
     const [priceFrom, setPriceFrom] = useState<number | undefined>();
     const [priceTo, setPriceTo] = useState<number | undefined>();
     const [sort, setSort] = useState<productsListQuery['sort']>(sortOptions[0].value);
 
-    // State for pagination
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
 
-    // State for loading/error
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // State for dropdown visibility
     const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
     const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
 
-    // Local state for price inputs (only changes when applied)
-    const [localPriceFrom, setLocalPriceFrom] = useState<string>(priceFrom?.toString() || ''); // Use string for input
-    const [localPriceTo, setLocalPriceTo] = useState<string>(priceTo?.toString() || ''); // Use string for input
+    const [localPriceFrom, setLocalPriceFrom] = useState<string>(priceFrom?.toString() || '');
+    const [localPriceTo, setLocalPriceTo] = useState<string>(priceTo?.toString() || '');
 
-    // Ref for click outside listener
     const filterRef = useRef<HTMLDivElement>(null);
-    // 👇 New Ref for Sort Dropdown
     const sortRef = useRef<HTMLDivElement>(null);
 
-    // --- Click Outside Filter Logic (Existing) ---
+    // FIX: Changed the type of 'ref' to explicitly allow HTMLDivElement | null
+    const closeDropdowns = useCallback((
+        event: MouseEvent,
+        ref: React.RefObject<HTMLDivElement | null>,
+        setter: React.Dispatch<React.SetStateAction<boolean>>
+    ) =>
+    {
+        if (ref.current && !ref.current.contains(event.target as Node))
+        {
+            setter(false);
+        }
+    }, []);
+
     useEffect(() =>
     {
-        const handleClickOutside = (event: MouseEvent) =>
-        {
-            if (filterRef.current && !filterRef.current.contains(event.target as Node))
-            {
-                // If clicked outside, close the filter dropdown
-                setIsFilterDropdownOpen(false);
-            }
-        };
+        const handleFilterClickOutside = (event: MouseEvent) => closeDropdowns(event, filterRef, setIsFilterDropdownOpen);
+        const handleSortClickOutside = (event: MouseEvent) => closeDropdowns(event, sortRef, setIsSortDropdownOpen);
 
         if (isFilterDropdownOpen)
         {
-            document.addEventListener('mousedown', handleClickOutside);
+            document.addEventListener('mousedown', handleFilterClickOutside);
         }
-
-        return () =>
-        {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [isFilterDropdownOpen]);
-    // ------------------------------------
-
-    // 👇 NEW Click Outside Sort Logic
-    useEffect(() =>
-    {
-        const handleClickOutside = (event: MouseEvent) =>
-        {
-            if (sortRef.current && !sortRef.current.contains(event.target as Node))
-            {
-                // If clicked outside, close the sort dropdown
-                setIsSortDropdownOpen(false);
-            }
-        };
-
         if (isSortDropdownOpen)
         {
-            document.addEventListener('mousedown', handleClickOutside);
+            document.addEventListener('mousedown', handleSortClickOutside);
         }
 
         return () =>
         {
-            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('mousedown', handleFilterClickOutside);
+            document.removeEventListener('mousedown', handleSortClickOutside);
         };
-    }, [isSortDropdownOpen]);
-    // ------------------------------------
+    }, [isFilterDropdownOpen, isSortDropdownOpen, closeDropdowns]);
 
     const fetchProducts = useCallback(async () =>
     {
@@ -123,7 +97,6 @@ const ProductsPage: React.FC = () =>
             const response: ProductsListResponse = await productsApi.fetchProductsList(filters);
 
             setData(response.data);
-            setLinks(response.links);
             setMeta(response.meta);
 
             const total = response.meta.total || 0;
@@ -158,26 +131,19 @@ const ProductsPage: React.FC = () =>
     const handleSortChange = (newSortValue: productsListQuery['sort']) =>
     {
         setSort(newSortValue);
-        // Ensure dropdown closes when selection is made
         setIsSortDropdownOpen(false);
         setPage(1);
     };
 
-    // --- Filter Handlers (Unchanged) ---
     const handleApplyFilters = () =>
     {
-        // Parse and validate local states
         const from = parseFloat(localPriceFrom) || undefined;
         const to = parseFloat(localPriceTo) || undefined;
 
-        // Update the main state, triggering fetchProducts due to dependency change
         setPriceFrom(from);
         setPriceTo(to);
 
-        // Reset page to 1
         setPage(1);
-
-        // Close the dropdown
         setIsFilterDropdownOpen(false);
     };
 
@@ -190,7 +156,6 @@ const ProductsPage: React.FC = () =>
         setPage(1);
         setIsFilterDropdownOpen(false);
     };
-    // ----------------------------
 
     const currentSortLabel = sortOptions.find(option => option.value === sort)?.label || 'Sort By';
 
@@ -214,7 +179,6 @@ const ProductsPage: React.FC = () =>
                     )}
                     |
 
-                    {/* Filter Dropdown Container */}
                     <div className="filter-dropdown-container" ref={filterRef}>
                         <button
                             className="filter-btn"
@@ -259,9 +223,7 @@ const ProductsPage: React.FC = () =>
                             </div>
                         )}
                     </div>
-                    {/* End Filter Dropdown Container */}
 
-                    {/* Sort Dropdown Container - ADDED REF */}
                     <div className="sort-dropdown-container" ref={sortRef}>
                         <button
                             className="sort-btn"
