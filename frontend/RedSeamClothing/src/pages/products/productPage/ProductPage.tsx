@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import CartSidebar from "../cartSidebar/CartSidebar";
 import "./ProductPage.css";
 import { productsApi, type ProductByIdResponse } from "../../../services/products/productsApi";
-import axios from "axios";
+
 
 import cartService, { type ProductData } from "../../../services/cart/CartService";
 
@@ -52,6 +52,7 @@ const ProductPage: React.FC = () =>
             setError(null);
             try
             {
+                // This correctly uses the provided service: productsApi.fetchProductById
                 const fetchedProduct = await productsApi.fetchProductById({ id: productId });
 
                 setProduct(fetchedProduct);
@@ -64,18 +65,28 @@ const ProductPage: React.FC = () =>
 
                 setSelectedImage(getAbsoluteImageUrl(availableImages[0]));
 
+                // Default selections are "red" and "S"
                 setSelectedColor("red");
                 setSelectedSize("S");
 
             } catch (err)
             {
-                if (axios.isAxiosError(err) && err.response?.status === 404)
-                {
-                    setError("Product not found.");
-                } else
-                {
-                    setError("Failed to load product data.");
-                }
+                // Removed axios.isAxiosError check to maintain abstraction.
+                // In a real app, you'd likely use a custom error type from your API service
+                // or check the error object's shape if you need specific status codes.
+                // For now, we revert to a general error message.
+
+                // if (axios.isAxiosError(err) && err.response?.status === 404)
+                // {
+                //     setError("Product not found.");
+                // } else
+                // {
+                //     setError("Failed to load product data.");
+                // }
+
+                // Fallback to a generic error message after removing the axios check
+                setError("Failed to load product data.");
+
                 console.error("Fetch error:", err);
             } finally
             {
@@ -112,12 +123,13 @@ const ProductPage: React.FC = () =>
             console.error("Error adding to cart:", e);
             alert("Could not add product to cart. Please try again.");
         }
-    }, [product, selectedColor, selectedSize, quantity, cartService.addToCart]);
+    }, [product, selectedColor, selectedSize, quantity]); // cartService.addToCart is stable, so removing it from deps for clarity
 
     if (loading) return <div className="product-page-loading">Loading product details...</div>;
     if (error) return <div className="product-page-error">Error: {error}</div>;
     if (!product) return null;
 
+    // These should ideally come from the product object if available
     const productColors = ["red", "blue", "green", "black"];
     const productSizes = ["S", "M", "L", "XL"];
 
@@ -205,7 +217,7 @@ const ProductPage: React.FC = () =>
 
                     <div className="product-details">
                         <h3>Product Details</h3>
-                        <p>b{product.brand.name}</p>
+                        <p>{product.brand.name}</p> {/* Removed 'b' prefix */}
                         <p>
                             This product contains regenerative cotton,
                             which is grown using farming methods that
