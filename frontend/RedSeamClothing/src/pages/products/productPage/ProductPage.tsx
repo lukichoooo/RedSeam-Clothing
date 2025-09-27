@@ -31,11 +31,16 @@ const ProductPage: React.FC = () =>
     const [error, setError] = useState<string | null>(null);
 
     const [selectedImage, setSelectedImage] = useState("");
-    const [selectedColor, setSelectedColor] = useState("");
-    const [selectedSize, setSelectedSize] = useState("");
+    // FIX: Set initial state to defaults to ensure button is enabled on load
+    const [selectedColor, setSelectedColor] = useState("red");
+    const [selectedSize, setSelectedSize] = useState("S");
     const [quantity, setQuantity] = useState(1);
 
     const [isSidebarOpen, setSidebarOpen] = useState(false);
+
+    // Define available options (moved out of render for consistency)
+    const productColors = ["red", "blue", "green", "black"];
+    const productSizes = ["S", "M", "L", "XL"];
 
     useEffect(() =>
     {
@@ -60,12 +65,15 @@ const ProductPage: React.FC = () =>
                     ? fetchedProduct.images
                     : (fetchedProduct.cover_image ? [fetchedProduct.cover_image] : []);
 
-                setQuantity(1);
+                // FIX: Set quantity to 1 if stock is available, otherwise 0.
+                setQuantity(fetchedProduct.quantity > 0 ? 1 : 0);
 
                 setSelectedImage(getAbsoluteImageUrl(availableImages[0]));
 
-                setSelectedColor("red");
-                setSelectedSize("S");
+                // Default selections are now handled by useState initialization, 
+                // but we can re-confirm them here for robustness if needed.
+                // setSelectedColor("red");
+                // setSelectedSize("S"); 
 
             } catch (err)
             {
@@ -88,11 +96,15 @@ const ProductPage: React.FC = () =>
 
     const handleAddToCart = useCallback(async () =>
     {
-        if (!product) return;
+        const currentQuantity = quantity;
 
-        if (!selectedColor || !selectedSize || quantity < 1)
+        // Safety check for out of stock or missing data before sending to cartService
+        if (!product || product.quantity === 0) return;
+
+        // The validation check remains important, even with defaults set
+        if (!selectedColor || !selectedSize || currentQuantity < 1)
         {
-            alert("Please select a color, size, and quantity.");
+            alert("Please select a valid color, size, and quantity greater than 0.");
             return;
         }
 
@@ -100,7 +112,7 @@ const ProductPage: React.FC = () =>
             id: product.id,
             color: selectedColor,
             size: selectedSize,
-            quantity,
+            quantity: currentQuantity,
         };
 
         try
@@ -112,17 +124,24 @@ const ProductPage: React.FC = () =>
             console.error("Error adding to cart:", e);
             alert("Could not add product to cart. Please try again.");
         }
-    }, [product, selectedColor, selectedSize, quantity, cartService.addToCart]);
+    }, [product, selectedColor, selectedSize, quantity]);
 
     if (loading) return <div className="product-page-loading">Loading product details...</div>;
     if (error) return <div className="product-page-error">Error: {error}</div>;
     if (!product) return null;
 
-    const productColors = ["red", "blue", "green", "black"];
-    const productSizes = ["S", "M", "L", "XL"];
-
-    const rawProductImages = (product.images || []) && (product.images?.length || 0 > 0) ? product.images! : (product.cover_image ? [product.cover_image] : []);
+    // Use a simpler check for product images
+    const rawProductImages = (product.images && product.images.length > 0)
+        ? product.images
+        : (product.cover_image ? [product.cover_image] : []);
     const productImages = rawProductImages.map(getAbsoluteImageUrl);
+
+    // FIX: Calculate maximum available quantity (up to 10 max)
+    const maxQuantity = Math.max(0, Math.min(10, product.quantity));
+    const quantityOptions = Array.from({ length: maxQuantity }, (_, i) => i + 1);
+
+    const isOutOfStock = product.quantity === 0;
+
 
     return (
         <>
@@ -165,18 +184,20 @@ const ProductPage: React.FC = () =>
                         </div>
                     </div>
 
+                    {/* FIX: Change Size back to side-by-side buttons */}
                     <div className="product-size">
                         <span className="label">Size:</span>
-                        <select
-                            value={selectedSize}
-                            onChange={(e) => setSelectedSize(e.target.value)}
-                        >
+                        <div className="size-options">
                             {productSizes.map((size, idx) => (
-                                <option key={idx} value={size}>
+                                <button
+                                    key={idx}
+                                    className={`size-button ${size === selectedSize ? "selected" : ""}`}
+                                    onClick={() => setSelectedSize(size)}
+                                >
                                     {size}
-                                </option>
+                                </button>
                             ))}
-                        </select>
+                        </div>
                     </div>
 
                     <div className="product-quantity">
@@ -184,26 +205,34 @@ const ProductPage: React.FC = () =>
                         <select
                             value={quantity}
                             onChange={(e) => setQuantity(Number(e.target.value))}
+                            disabled={isOutOfStock}
                         >
-                            {Array.from({ length: Math.min(10, product.quantity) }, (_, i) => i + 1).map((q) => (
-                                <option key={q} value={q}>
-                                    {q}
-                                </option>
-                            ))}
+                            {isOutOfStock ? (
+                                <option value={0}>Out of Stock</option>
+                            ) : (
+                                quantityOptions.map((q) => (
+                                    <option key={q} value={q}>{q}</option>
+                                ))
+                            )}
                         </select>
                     </div>
 
                     <button
                         className="add-to-cart"
                         onClick={handleAddToCart}
-                        disabled={!selectedColor || !selectedSize || quantity < 1}
+                        // FIX: Only disable if out of stock, as selections are guaranteed by default state.
+                        disabled={isOutOfStock}
                     >
-                        Add to Cart
+                        {isOutOfStock ? "Out of Stock" : "Add to Cart"}
                     </button>
 
                     <div className="product-details">
                         <h3>Product Details</h3>
-                        <p>{product.description}</p>
+                        <p>Brand: {product.brand.name}</p>
+                        <p>This product contains regenerative cotton,
+                            which is grown using farming methods that seek to improve soil health,
+                            watersheds and biodiversity.
+                        </p>
                     </div>
                 </div>
             </div>

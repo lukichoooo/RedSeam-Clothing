@@ -60,7 +60,7 @@
     border-color: var(--primary-color, #222);
 }
 
-.product-size select,
+/* Original select styles, now only applying to product-quantity select */
 .product-quantity select {
     margin-top: 5px;
     padding: 5px;
@@ -82,6 +82,45 @@
     opacity: 0.9;
 }
 
+.add-to-cart:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
 .product-details {
     margin-top: 30px;
+}
+
+/* NEW/FIXED CSS FOR SIZE BUTTONS */
+
+.product-size {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.size-options {
+    display: flex;
+    gap: 8px;
+}
+
+.size-button {
+    padding: 8px 15px;
+    border: 1px solid #ccc;
+    background-color: transparent;
+    color: #222;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.size-button:hover {
+    border-color: var(--primary-color, #222);
+}
+
+.size-button.selected {
+    background-color: var(--primary-color, #222);
+    color: #fff;
+    border-color: var(--primary-color, #222);
 }
