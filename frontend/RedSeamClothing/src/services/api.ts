@@ -6,7 +6,8 @@ const API_BASE_URL = 'https://api.redseam.redberryinternship.ge/api';
 const api = axios.create({
     baseURL: API_BASE_URL,
     headers: {
-        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
 });
 

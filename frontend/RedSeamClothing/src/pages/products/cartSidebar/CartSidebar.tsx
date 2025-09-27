@@ -7,7 +7,6 @@ import "./CartSidebar.css";
 
 const CartSidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) =>
 {
-    // FIX: State type must be CartProductResponse[], as returned by fetchCart()
     const [items, setItems] = useState<CartProductResponse[]>([]);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -41,38 +40,61 @@ const CartSidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
     {
         if (newQuantity < 1)
         {
+            // If new quantity is < 1, delegate to remove handler
             await handleRemoveFromCart(id);
             return;
         }
 
+        // Optimistic UI Update (for a quicker feel)
+        setItems(prevItems =>
+            prevItems.map(item =>
+                item.id === id ? { ...item, quantity: newQuantity } : item
+            )
+        );
+
         try
         {
+            // Update the quantity on the backend
             await cartService.updateQuantity(id, newQuantity);
-            await fetchCart();
+
+            // NOTE: If your backend calculates and returns a new total_price or subtotal 
+            // and you need that reflected, you should uncomment the line below:
+            // await fetchCart(); 
+
         } catch (error)
         {
+            // Revert state change and show error if API call fails
             console.error(`Failed to update quantity for product ${id}:`, error);
+            await fetchCart(); // Re-fetch to synchronize state with server
         }
-    }, [fetchCart]);
+    }, []); // Removed fetchCart from dependencies to prevent unnecessary full fetches
 
     const handleRemoveFromCart = useCallback(async (id: number) =>
     {
+        // Optimistic UI Update: Remove item immediately from the state
+        setItems(prevItems => prevItems.filter(item => item.id !== id));
+
         try
         {
+            // Call the remove API
             await cartService.removeFromCart(id);
-            await fetchCart();
         } catch (error)
         {
+            // If removal fails, re-fetch the entire cart to revert the optimistic removal
             console.error(`Failed to remove product ${id} from cart:`, error);
+            await fetchCart(); // Re-fetch to synchronize state with server
         }
-    }, [fetchCart]);
+    }, []);
 
 
     const delivery = 10;
+    // Calculation uses local state
     const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const total = subtotal + delivery;
 
     if (!isOpen) return null;
+
+    // ... (rest of the component logic remains the same for loading/empty state) ...
 
     if (loading && items.length === 0)
     {
@@ -136,10 +158,10 @@ const CartSidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                                 <strong>{item.name}</strong> - ${item.price}
                             </div>
                             <div className="cart-item-controls">
-                                <button onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}>-</button>
+                                <button onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)} disabled={loading}>-</button>
                                 <span>{item.quantity}</span>
-                                <button onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}>+</button>
-                                <button className="remove-btn" onClick={() => handleRemoveFromCart(item.id)}>Remove</button>
+                                <button onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)} disabled={loading}>+</button>
+                                <button className="remove-btn" onClick={() => handleRemoveFromCart(item.id)} disabled={loading}>Remove</button>
                             </div>
                         </div>
                     );

@@ -52,7 +52,6 @@ const authenticationService = {
 
         const { data } = await api.post<RegisterResponse>("/register", formData, {
             headers: {
-                "Content-Type": "multipart/form-data",
                 Accept: "application/json",
             },
         });

@@ -30,9 +30,9 @@ export const cartApi = {
         return response.data;
     },
 
-    updateProductQuantity: async (productId: number, quantity: number): Promise<CartProductResponse> =>
+    updateProductQuantity: async (productId: number, newQuantity: number): Promise<CartProductResponse> =>
     {
-        const response = await api.patch<CartProductResponse>(`/cart/products/${productId}`, quantity);
+        const response = await api.patch<CartProductResponse>(`/cart/products/${productId}`, { quantity: newQuantity });
         return response.data;
     },
 
