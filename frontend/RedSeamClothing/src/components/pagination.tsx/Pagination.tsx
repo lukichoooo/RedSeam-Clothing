@@ -22,13 +22,24 @@ const Pagination: React.FC<PaginationProps> = ({
 {
     const pages: (number | string)[] = [];
 
-    let startPage = Math.max(currentPage - 2, 1);
-    let endPage = startPage + maxButtons - 1;
+    if (totalPages <= 1) return null;
+
+
+    const half = Math.floor(maxButtons / 2);
+
+    let startPage = currentPage - half;
+    let endPage = currentPage + half;
+
+    if (startPage < 1)
+    {
+        startPage = 1;
+        endPage = Math.min(maxButtons, totalPages);
+    }
 
     if (endPage > totalPages)
     {
         endPage = totalPages;
-        startPage = Math.max(endPage - maxButtons + 1, 1);
+        startPage = Math.max(totalPages - maxButtons + 1, 1);
     }
 
     if (startPage > 1)
@@ -45,8 +56,9 @@ const Pagination: React.FC<PaginationProps> = ({
     if (endPage < totalPages)
     {
         if (endPage < totalPages - 1) pages.push('...');
-        pages.push(totalPages);
+        if (endPage < totalPages) pages.push(totalPages);
     }
+
 
     return (
         <div className="pagination-controls">
@@ -55,7 +67,7 @@ const Pagination: React.FC<PaginationProps> = ({
                 disabled={currentPage === 1}
                 onClick={() => onPageChange(currentPage - 1)}
             >
-                {prevImg ? <img src={prevImg} alt="prev" /> : '<'}
+                {prevImg ? <img src={prevImg} alt="Previous" /> : '<'}
             </button>
 
             <div className="page-buttons">
@@ -69,7 +81,7 @@ const Pagination: React.FC<PaginationProps> = ({
                             {p}
                         </button>
                     ) : (
-                        <span key={idx}>{p}</span>
+                        <span key={idx} className="ellipsis">{p}</span>
                     )
                 )}
             </div>
@@ -79,7 +91,7 @@ const Pagination: React.FC<PaginationProps> = ({
                 disabled={currentPage === totalPages}
                 onClick={() => onPageChange(currentPage + 1)}
             >
-                {nextImg ? <img src={nextImg} alt="next" /> : '>'}
+                {nextImg ? <img src={nextImg} alt="Next" /> : '>'}
             </button>
         </div>
     );

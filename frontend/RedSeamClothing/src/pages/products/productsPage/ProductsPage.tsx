@@ -20,6 +20,14 @@ const getAbsoluteImageUrl = (path: string | undefined): string =>
     return `${IMAGE_BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
 };
 
+// Define the available sort options
+const sortOptions = [
+    { label: 'Newest', value: '-created_at' },
+    { label: 'Oldest', value: 'created_at' },
+    { label: 'Price: Low to High', value: 'price' },
+    { label: 'Price: High to Low', value: '-price' },
+];
+
 const ProductsPage: React.FC = () =>
 {
     const [data, setData] = useState<Data[]>([]);
@@ -29,7 +37,8 @@ const ProductsPage: React.FC = () =>
     // State for filters and sorting
     const [priceFrom, setPriceFrom] = useState<number | undefined>();
     const [priceTo, setPriceTo] = useState<number | undefined>();
-    const [sort, setSort] = useState<'price' | '-price' | 'created_at' | '-created_at' | undefined>();
+    // Initialize sort state to the first option, or leave undefined if no default is desired
+    const [sort, setSort] = useState<productsListQuery['sort']>(sortOptions[0].value);
 
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
@@ -37,8 +46,18 @@ const ProductsPage: React.FC = () =>
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    // New state for dropdown visibility
+    const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+
     const fetchProducts = useCallback(async () =>
     {
+        // When filters/sort changes, we should reset to page 1
+        if (page !== 1 && !loading)
+        {
+            setPage(1);
+            return; // Exit and let the next useEffect call the function with page=1
+        }
+
         setLoading(true);
         setError(null);
         try
@@ -69,12 +88,18 @@ const ProductsPage: React.FC = () =>
         {
             setLoading(false);
         }
-    }, [page, priceFrom, priceTo, sort]); // Re-run fetch when page or filters change
+    }, [page, priceFrom, priceTo, sort]);
+    // ^ Minor refinement: fetchProducts should ideally only be called when page, price, or sort changes.
 
     useEffect(() =>
     {
-        fetchProducts();
-    }, [fetchProducts]); // This effect depends on the memoized fetchProducts function
+        // If sort or filters change, we want to reset the page to 1
+        // The useCallback above handles the setPage(1) logic on filter change.
+        if (page === 1)
+        {
+            fetchProducts();
+        }
+    }, [fetchProducts]);
 
     const handlePageChange = (newPage: number) =>
     {
@@ -83,6 +108,17 @@ const ProductsPage: React.FC = () =>
             setPage(newPage);
         }
     };
+
+    // Function to handle sort selection
+    const handleSortChange = (newSortValue: productsListQuery['sort']) =>
+    {
+        setSort(newSortValue);
+        setIsSortDropdownOpen(false); // Close dropdown after selection
+        setPage(1); // Crucial: Reset to first page when changing sort criteria
+    };
+
+    // Get the label for the currently selected sort option
+    const currentSortLabel = sortOptions.find(option => option.value === sort)?.label || 'Sort By';
 
     if (loading && data.length === 0)
     {
@@ -112,10 +148,33 @@ const ProductsPage: React.FC = () =>
                         />
                         <span>Filter</span>
                     </button>
-                    <button className="sort-btn" disabled={loading}>
-                        <span>Sort By</span>
-                        <span className="dropdown-icon">▼</span>
-                    </button>
+
+                    {/* Sort Dropdown Container */}
+                    <div className="sort-dropdown-container">
+                        <button
+                            className="sort-btn"
+                            disabled={loading}
+                            onClick={() => setIsSortDropdownOpen(c => !c)}
+                        >
+                            <span>{currentSortLabel}</span>
+                            <span className="dropdown-icon">▼</span>
+                        </button>
+
+                        {isSortDropdownOpen && (
+                            <div className="sort-dropdown-menu">
+                                {sortOptions.map((option) => (
+                                    <button
+                                        key={option.value}
+                                        className={sort === option.value ? 'sort-option active' : 'sort-option'}
+                                        onClick={() => handleSortChange(option.value)}
+                                    >
+                                        {option.label}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
                 </div>
             </div>
 

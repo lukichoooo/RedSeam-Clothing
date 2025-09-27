@@ -131,6 +131,81 @@ body.dark .filter-btn .dropdown-icon {
     font-weight: bold;
 }
 
+/* Container for positioning the dropdown relative to the button */
+.sort-dropdown-container {
+    position: relative;
+    display: inline-block;
+    /* Maintain the alignment and gap from .header-right */
+}
+
+/* Dropdown Menu itself (The box that appears) */
+.sort-dropdown-menu {
+    position: absolute;
+    /* Position slightly below the button, aligned to the right edge */
+    top: 100%;
+    right: 0;
+
+    min-width: 200px;
+
+    background-color: var(--surface-color);
+    /* Matches card/pagination background */
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+
+    z-index: 100;
+    /* Ensure it floats above all other elements */
+
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* Contains the rounded corners */
+    margin-top: 5px;
+    /* Small gap between button and menu */
+
+    /* Ensure smooth theme transitions */
+    transition: background-color var(--transition-speed) var(--transition-easing),
+        border-color var(--transition-speed) var(--transition-easing);
+}
+
+/* Individual options inside the dropdown */
+.sort-option {
+    width: 100%;
+    padding: 10px 15px;
+    text-align: left;
+
+    /* Reset button styles */
+    background: none;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 14px;
+
+    /* Ensure smooth theme transitions */
+    transition: background-color 0.2s, color 0.2s;
+}
+
+/* Hover state for options */
+.sort-option:hover {
+    background-color: var(--button-hover-background-color);
+    color: var(--button-text-color);
+}
+
+/* Active/Selected option styling */
+.sort-option.active {
+    font-weight: bold;
+    /* Use a color that signifies selection */
+    background-color: var(--button-background-color);
+    color: white;
+    /* Ensure text is legible against the strong background */
+}
+
+/* Ensure the sort button respects the container styling */
+.sort-dropdown-container .sort-btn {
+    padding: 5px 10px;
+    /* Match the .sort-btn/filter-btn padding */
+}
+
 /* Mobile responsiveness */
 @media (max-width: 1280px) {
     .product-grid {
