@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 
 import passEyeIcon from '../../icons/auth/reveal-pass-img.png';
 import bgImage from '../../icons/auth/auth-page-bk-image.png';
+import authenticationService from "../../services/user/authenticationService";
+
 
 const RegistrationPage: React.FC = () =>
 {
@@ -50,55 +52,43 @@ const RegistrationPage: React.FC = () =>
         setProfileImage(null);
     };
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) =>
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) =>
     {
         e.preventDefault();
-
         const form = e.currentTarget;
         const username = (form.username as HTMLInputElement).value.trim();
         const email = (form.email as HTMLInputElement).value.trim();
         const password = (form.password as HTMLInputElement).value;
         const confirmPassword = (form["confirm-password"] as HTMLInputElement).value;
+        const avatar = form.profileUpload?.files?.[0] ?? null;
 
-        // ✅ Validation
-        if (username.length < 3)
+        // Validation is already done
+
+        try
         {
-            alert("Username must be at least 3 characters.");
-            return;
-        }
+            const res = await authenticationService.register({
+                username,
+                email,
+                password,
+                password_confirmation: confirmPassword,
+                avatar: avatar,
+            });
 
-        if (!/\S+@\S+\.\S+/.test(email))
+            localStorage.setItem("token", res.token);
+            localStorage.setItem("user", JSON.stringify(res.user));
+
+            window.location.href = "/";
+        } catch (err: any)
         {
-            alert("Please enter a valid email.");
-            return;
+            if (err.response?.status === 422)
+            {
+                alert("Validation error. Please check your inputs.");
+            } else
+            {
+                alert("Something went wrong. Please try again later.");
+            }
         }
-
-        if (password.length < 3)
-        {
-            alert("Password must be at least 3 characters.");
-            return;
-        }
-
-        if (password !== confirmPassword)
-        {
-            alert("Passwords do not match.");
-            return;
-        }
-
-        // Prepare form data (works with or without avatar)
-        const formData = new FormData();
-        formData.append("username", username);
-        formData.append("email", email);
-        formData.append("password", password);
-
-        if (form.profileUpload?.files?.[0])
-        {
-            formData.append("avatar", form.profileUpload.files[0]);
-        }
-
-        // TODO: Send formData to backend via fetch/axios
     };
-
 
 
     return (

@@ -30,6 +30,19 @@ const mockProducts: Product[] = [
         colors: ["red", "blue", "green"],
         sizes: ["S", "M", "L", "XL"],
     },
+    {
+        id: 2,
+        name: "Example Product 2",
+        price: 55,
+        brand: "Brand B",
+        images: [
+            "https://via.placeholder.com/703x937.png?text=1",
+            "https://via.placeholder.com/703x937.png?text=2",
+            "https://via.placeholder.com/703x937.png?text=3",
+        ],
+        colors: ["red", "blue", "yellow"],
+        sizes: ["S", "M", "L", "XL"],
+    },
 ];
 
 const ProductPage: React.FC = () =>
