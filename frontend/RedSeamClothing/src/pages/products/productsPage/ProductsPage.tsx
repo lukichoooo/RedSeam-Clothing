@@ -51,13 +51,6 @@ const ProductsPage: React.FC = () =>
 
     const fetchProducts = useCallback(async () =>
     {
-        // When filters/sort changes, we should reset to page 1
-        if (page !== 1 && !loading)
-        {
-            setPage(1);
-            return; // Exit and let the next useEffect call the function with page=1
-        }
-
         setLoading(true);
         setError(null);
         try
@@ -88,17 +81,11 @@ const ProductsPage: React.FC = () =>
         {
             setLoading(false);
         }
-    }, [page, priceFrom, priceTo, sort]);
-    // ^ Minor refinement: fetchProducts should ideally only be called when page, price, or sort changes.
+    }, [page, priceFrom, priceTo, sort]); // Dependencies are correct
 
     useEffect(() =>
     {
-        // If sort or filters change, we want to reset the page to 1
-        // The useCallback above handles the setPage(1) logic on filter change.
-        if (page === 1)
-        {
-            fetchProducts();
-        }
+        fetchProducts();
     }, [fetchProducts]);
 
     const handlePageChange = (newPage: number) =>
