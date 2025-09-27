@@ -5,7 +5,7 @@ import Pagination from '../../../components/pagination.tsx/Pagination';
 import bwkBtn from '../../../icons/search/bkw-btn.png';
 import fwdBrn from '../../../icons/search/fwd-btn.png';
 import filterBtn from '../../../icons/search/filter-btn.png';
-import productsApi, { type Data, type Links, type Meta, type productsListQuery, type ProductsListResponse } from '../../../services/products/productsApi';
+import productsApi, { type Data, type Meta, type productsListQuery, type ProductsListResponse } from '../../../services/products/productsApi';
 
 const IMAGE_BASE_URL = 'https://api.redseam.redberryinternship.ge';
 
@@ -143,16 +143,6 @@ const ProductsPage: React.FC = () =>
         setPriceFrom(from);
         setPriceTo(to);
 
-        setPage(1);
-        setIsFilterDropdownOpen(false);
-    };
-
-    const handleClearFilters = () =>
-    {
-        setPriceFrom(undefined);
-        setPriceTo(undefined);
-        setLocalPriceFrom('');
-        setLocalPriceTo('');
         setPage(1);
         setIsFilterDropdownOpen(false);
     };
