@@ -22,6 +22,16 @@ export type CartProductResponse =
         total_price: number,
     }
 
+export type CheckoutDetails =
+    {
+        name: string;
+        surname: string;
+        email: string;
+        address: string;
+        zip_code: string;
+    };
+
+
 export const cartApi = {
 
     addProductToCart: async (productId: number, query: CartProductsQuery): Promise<CartProductResponse> =>
@@ -47,9 +57,10 @@ export const cartApi = {
         return response.data;
     },
 
-    checkout: async (): Promise<{ message: string }> =>
+    // FIX: Update checkout to accept the required details and send them in the request body
+    checkout: async (details: CheckoutDetails): Promise<{ message: string }> =>
     {
-        const response = await api.post<{ message: string }>('/cart/checkout');
+        const response = await api.post<{ message: string }>('/cart/checkout', details);
         return response.data;
     },
 };
