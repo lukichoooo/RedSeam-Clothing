@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../services/context/ThemeContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react'; // 👈 Import useRef
 import { type User } from '../../services/user/user.types';
 import './Navbar.css';
 
@@ -24,11 +24,34 @@ export default function Navbar()
 
     const [user, setUser] = useState<User | null>(null);
 
+    // 👈 1. Create a ref for the entire user menu container
+    const menuRef = useRef<HTMLDivElement>(null);
+
     useEffect(() =>
     {
-
         setUser(userService.getUserFromLocalStorage());
     }, []);
+
+    useEffect(() =>
+    {
+        const handleClickOutside = (event: MouseEvent) =>
+        {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node))
+            {
+                setIsDropdownOpen(false);
+            }
+        };
+
+        if (isDropdownOpen)
+        {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () =>
+        {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isDropdownOpen]);
 
     const openCart = () => setIsCartOpen(true);
     const closeCart = () => setIsCartOpen(false);
@@ -55,7 +78,8 @@ export default function Navbar()
                             alt="Shopping Cart"
                             className="cart-icon"
                         />
-                        <div className="user-menu-container">
+                        {/* 👈 3. Attach the ref to the container */}
+                        <div className="user-menu-container" ref={menuRef}>
                             <img
                                 src={user!.profile_photo || defaultAvatar}
                                 alt={`${user!.name || 'User'} Avatar`}
