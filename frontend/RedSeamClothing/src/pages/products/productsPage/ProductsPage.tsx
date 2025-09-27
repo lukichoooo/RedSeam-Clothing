@@ -255,14 +255,6 @@ const ProductsPage: React.FC = () =>
                                     >
                                         Apply
                                     </button>
-                                    {(priceFrom || priceTo) && (
-                                        <button
-                                            className="clear-btn"
-                                            onClick={handleClearFilters}
-                                        >
-                                            Clear
-                                        </button>
-                                    )}
                                 </div>
                             </div>
                         )}
