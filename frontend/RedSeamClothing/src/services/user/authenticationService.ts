@@ -1,4 +1,3 @@
-import type { User } from "./user.types";
 import api from "../api";
 
 export interface LoginResponse

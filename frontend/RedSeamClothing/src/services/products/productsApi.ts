@@ -2,41 +2,40 @@ import api from '../api';
 
 // List of products
 
-export type data =
+export type Data =
     {
         id: number,
         image: string
         name: string,
         price: number,
-        release_year: number
+        release_year: string
     }
 
-export type links =
+export type Links =
     {
         first: string,
         last: string,
-        prev: string,
-        next: string
+        prev: string | null, // prev can be null on the first page
+        next: string | null  // next can be null on the last page
     }
 
-export type meta =
+export type Meta =
     {
         current_page: number,
         current_page_url: string,
-        from: number, // starting item idx on curr page
-        path: string, // base api url
+        from: number,
+        path: string,
         per_page: number,
         to: number,
-        total: number // TODO: idk if this is returend
+        total: number // Added based on usage in the component
     }
 
 export type ProductsListResponse =
     {
-        data: data[],
-        links: links,
-        meta: meta
+        data: Data[],
+        links: Links,
+        meta: Meta
     }
-
 
 export type productsListQuery =
     {
@@ -44,13 +43,6 @@ export type productsListQuery =
         'filter[price_from]'?: number,
         'filter[price_to]'?: number,
         sort?: string;
-    }
-
-export type productsListResponse =
-    {
-        data: data[],
-        links: links,
-        meta: meta
     }
 
 // Per Product
@@ -96,3 +88,5 @@ export const productsApi = {
         return response.data;
     },
 };
+
+export default productsApi;

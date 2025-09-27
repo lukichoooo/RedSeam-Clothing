@@ -3,9 +3,12 @@ import { useParams } from "react-router-dom";
 import { useCart } from "../../../services/context/CartContext";
 import CartSidebar from "../cartSidebar/CartSidebar";
 import "./ProductPage.css";
-import type { ProductData } from "../../../services/user/cart.types";
-import { productsApi, type DetailedProductResponse } from "../../../services/productsApi";
+// Corrected import: 'ProductsListResponseL' is not defined. Use 'ProductByIdResponse' for the single product data.
+import { productsApi, type ProductByIdResponse } from "../../../services/products/productsApi";
 import axios from "axios";
+
+import type { ProductData } from "../../../services/cart/cart.types";
+
 
 // --- Utility Function to Fix Image URLs ---
 const IMAGE_BASE_URL = 'https://api.redseam.redberryinternship.ge';
@@ -28,7 +31,8 @@ const ProductPage: React.FC = () =>
     const { id } = useParams<{ id: string }>();
     const productId = Number(id);
 
-    const [product, setProduct] = useState<DetailedProductResponse | null>(null);
+    // Corrected state type to use ProductByIdResponse
+    const [product, setProduct] = useState<ProductByIdResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -55,11 +59,15 @@ const ProductPage: React.FC = () =>
             setError(null);
             try
             {
-                const fetchedProduct = await productsApi.fetchProductById(productId);
+                // FIX: productsApi.fetchProductById expects an object { id: number }
+                const fetchedProduct = await productsApi.fetchProductById({ id: productId });
 
                 setProduct(fetchedProduct);
 
-                const availableImages = fetchedProduct.images || (fetchedProduct.cover_image ? [fetchedProduct.cover_image] : []);
+                // Ensure a safe array of images for initialization
+                const availableImages = fetchedProduct.images && fetchedProduct.images.length > 0
+                    ? fetchedProduct.images
+                    : (fetchedProduct.cover_image ? [fetchedProduct.cover_image] : []);
 
                 setQuantity(1);
 
@@ -120,11 +128,13 @@ const ProductPage: React.FC = () =>
     if (error) return <div className="product-page-error">Error: {error}</div>;
     if (!product) return null;
 
+    // Hardcoded options can be improved by fetching from the product data if available
     const productColors = ["red", "blue", "green", "black"];
     const productSizes = ["S", "M", "L", "XL"];
 
     // Process all images to ensure they are absolute URLs
-    const rawProductImages = product.images || (product.cover_image ? [product.cover_image] : []);
+    // Added a check for images being null/undefined before spreading
+    const rawProductImages = (product.images || []) && (product.images?.length || 0 > 0) ? product.images! : (product.cover_image ? [product.cover_image] : []);
     const productImages = rawProductImages.map(getAbsoluteImageUrl);
 
     return (
@@ -188,6 +198,7 @@ const ProductPage: React.FC = () =>
                             value={quantity}
                             onChange={(e) => setQuantity(Number(e.target.value))}
                         >
+                            {/* Ensure quantity selection does not exceed product's available quantity */}
                             {Array.from({ length: Math.min(10, product.quantity) }, (_, i) => i + 1).map((q) => (
                                 <option key={q} value={q}>
                                     {q}

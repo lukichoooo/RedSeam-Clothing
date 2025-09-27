@@ -5,7 +5,7 @@ import Pagination from '../../../components/pagination.tsx/Pagination';
 import bwkBtn from '../../../icons/search/bkw-btn.png';
 import fwdBrn from '../../../icons/search/fwd-btn.png';
 import filterBtn from '../../../icons/search/filter-btn.png';
-import { productsApi, type ListProductItemResponse, type ProductsListResponse } from '../../../services/productsApi';
+import productsApi, { type Data, type Links, type Meta, type productsListQuery, type ProductsListResponse } from '../../../services/products/productsApi';
 
 // --- Define the correct base URL for images ---
 const IMAGE_BASE_URL = 'https://api.redseam.redberryinternship.ge';
@@ -23,67 +23,72 @@ const getAbsoluteImageUrl = (path: string | undefined): string =>
 
 const ProductsPage: React.FC = () =>
 {
-    const [products, setProducts] = useState<ListProductItemResponse[]>([]);
-    const [currentPage, setCurrentPage] = useState(1);
+    const [data, setData] = useState<Data[]>([]);
+    const [links, setLinks] = useState<Links | null>(null);
+    const [meta, setMeta] = useState<Meta | null>(null);
+
+    // State for filters and sorting
+    const [priceFrom, setPriceFrom] = useState<number | undefined>();
+    const [priceTo, setPriceTo] = useState<number | undefined>();
+    const [sort, setSort] = useState<'price' | '-price' | 'created_at' | '-created_at' | undefined>();
+
+    const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const [totalItems, setTotalItems] = useState(1);
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const [sortOption, setSortOption] = useState<'price' | '-price' | 'created_at' | '-created_at'>();
-
-    const fetchProducts = useCallback(async (page: number, sort?: string) =>
+    const fetchProducts = useCallback(async () =>
     {
         setLoading(true);
         setError(null);
         try
         {
-            const filters = {
-                page: page,
-                sort: sort as any,
-            };
+            const filters: productsListQuery = { page };
+            if (priceFrom && priceFrom > 0) filters['filter[price_from]'] = priceFrom;
+            if (priceTo && priceTo > 0) filters['filter[price_to]'] = priceTo;
+            if (sort) filters.sort = sort;
 
-            const response: ProductsListResponse = await productsApi.fetchProducts(filters);
+            const response: ProductsListResponse = await productsApi.fetchProductsList(filters);
 
-            setProducts(response.data);
-            setTotalPages(response.meta.current_page + (response.links.next ? 1 : 0));
+            setData(response.data);
+            setLinks(response.links);
+            setMeta(response.meta);
 
-            const newTotalItems = (response.meta.current_page - 1) * response.meta.per_page + response.data.length;
-            setTotalItems(newTotalItems);
+            // Calculate total pages dynamically from the API response
+            const total = response.meta.total || 0;
+            const perPage = response.meta.per_page || 1;
+            setTotalPages(Math.ceil(total / perPage));
 
         } catch (e)
         {
             console.error("Failed to fetch products:", e);
             setError("Failed to load products. Please try again.");
-            setProducts([]);
+            setData([]);
             setTotalPages(1);
-            setTotalItems(0);
         } finally
         {
             setLoading(false);
         }
-    }, []);
+    }, [page, priceFrom, priceTo, sort]); // Re-run fetch when page or filters change
 
     useEffect(() =>
     {
-        fetchProducts(currentPage, sortOption);
-    }, [currentPage, sortOption, fetchProducts]);
+        fetchProducts();
+    }, [fetchProducts]); // This effect depends on the memoized fetchProducts function
 
-    const handlePageChange = (page: number) =>
+    const handlePageChange = (newPage: number) =>
     {
-        if (page >= 1 && page <= totalPages)
+        if (newPage >= 1 && newPage <= totalPages)
         {
-            setCurrentPage(page);
+            setPage(newPage);
         }
     };
 
-    if (loading && products.length === 0)
+    if (loading && data.length === 0)
     {
         return <div className="products-page-loading">Loading products... 🛒</div>;
     }
-
-    const startItem = (currentPage - 1) * products.length + 1;
-    const endItem = startItem + products.length - 1;
 
     return (
         <div className="products-page">
@@ -93,9 +98,10 @@ const ProductsPage: React.FC = () =>
                     <h1>Products</h1>
                 </div>
                 <div className="header-right">
-                    {products.length > 0 && (
+                    {meta && meta.total > 0 && (
+                        // Use meta info for more accurate result count
                         <span>
-                            Showing {startItem}-{endItem} results
+                            Showing {meta.from}-{meta.to} of {meta.total} results
                         </span>
                     )}
                     |
@@ -116,26 +122,26 @@ const ProductsPage: React.FC = () =>
 
             {error && <div className="products-page-error">{error}</div>}
 
-            {!loading && products.length === 0 && !error && (
+            {!loading && data.length === 0 && !error && (
                 <div className="no-results">No products found matching your criteria.</div>
             )}
 
             <div className="product-grid">
-                {products.map((product) => (
+                {data.map((product) => (
                     <ProductCard
                         key={product.id}
                         id={product.id}
                         name={product.name}
                         price={product.price}
-                        // FIX APPLIED HERE: Ensure imageUrl is an absolute path
-                        imageUrl={getAbsoluteImageUrl(product.image)}
+                        // Use the utility function to get the full image URL
+                        image={getAbsoluteImageUrl(product.image)}
                     />
                 ))}
             </div>
 
             {totalPages > 1 && (
                 <Pagination
-                    currentPage={currentPage}
+                    currentPage={page}
                     totalPages={totalPages}
                     onPageChange={handlePageChange}
                     prevImg={bwkBtn}
