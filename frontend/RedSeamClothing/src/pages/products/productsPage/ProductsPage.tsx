@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ProductCard from '../card/ProductCard';
 import './ProductsPage.css';
 import Pagination from '../../../components/pagination.tsx/Pagination';
@@ -30,24 +30,84 @@ const sortOptions = [
 
 const ProductsPage: React.FC = () =>
 {
+    // ... (Data and Meta states)
     const [data, setData] = useState<Data[]>([]);
     const [links, setLinks] = useState<Links | null>(null);
     const [meta, setMeta] = useState<Meta | null>(null);
 
-    // State for filters and sorting
+    // State for main filters and sorting (triggers API call)
     const [priceFrom, setPriceFrom] = useState<number | undefined>();
     const [priceTo, setPriceTo] = useState<number | undefined>();
-    // Initialize sort state to the first option, or leave undefined if no default is desired
     const [sort, setSort] = useState<productsListQuery['sort']>(sortOptions[0].value);
 
+    // State for pagination
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
 
+    // State for loading/error
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // New state for dropdown visibility
+    // State for dropdown visibility
     const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+    const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+
+    // Local state for price inputs (only changes when applied)
+    const [localPriceFrom, setLocalPriceFrom] = useState<string>(priceFrom?.toString() || ''); // Use string for input
+    const [localPriceTo, setLocalPriceTo] = useState<string>(priceTo?.toString() || ''); // Use string for input
+
+    // Ref for click outside listener
+    const filterRef = useRef<HTMLDivElement>(null);
+    // 👇 New Ref for Sort Dropdown
+    const sortRef = useRef<HTMLDivElement>(null);
+
+    // --- Click Outside Filter Logic (Existing) ---
+    useEffect(() =>
+    {
+        const handleClickOutside = (event: MouseEvent) =>
+        {
+            if (filterRef.current && !filterRef.current.contains(event.target as Node))
+            {
+                // If clicked outside, close the filter dropdown
+                setIsFilterDropdownOpen(false);
+            }
+        };
+
+        if (isFilterDropdownOpen)
+        {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () =>
+        {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isFilterDropdownOpen]);
+    // ------------------------------------
+
+    // 👇 NEW Click Outside Sort Logic
+    useEffect(() =>
+    {
+        const handleClickOutside = (event: MouseEvent) =>
+        {
+            if (sortRef.current && !sortRef.current.contains(event.target as Node))
+            {
+                // If clicked outside, close the sort dropdown
+                setIsSortDropdownOpen(false);
+            }
+        };
+
+        if (isSortDropdownOpen)
+        {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () =>
+        {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isSortDropdownOpen]);
+    // ------------------------------------
 
     const fetchProducts = useCallback(async () =>
     {
@@ -66,7 +126,6 @@ const ProductsPage: React.FC = () =>
             setLinks(response.links);
             setMeta(response.meta);
 
-            // Calculate total pages dynamically from the API response
             const total = response.meta.total || 0;
             const perPage = response.meta.per_page || 1;
             setTotalPages(Math.ceil(total / perPage));
@@ -81,7 +140,7 @@ const ProductsPage: React.FC = () =>
         {
             setLoading(false);
         }
-    }, [page, priceFrom, priceTo, sort]); // Dependencies are correct
+    }, [page, priceFrom, priceTo, sort]);
 
     useEffect(() =>
     {
@@ -96,15 +155,43 @@ const ProductsPage: React.FC = () =>
         }
     };
 
-    // Function to handle sort selection
     const handleSortChange = (newSortValue: productsListQuery['sort']) =>
     {
         setSort(newSortValue);
-        setIsSortDropdownOpen(false); // Close dropdown after selection
-        setPage(1); // Crucial: Reset to first page when changing sort criteria
+        // Ensure dropdown closes when selection is made
+        setIsSortDropdownOpen(false);
+        setPage(1);
     };
 
-    // Get the label for the currently selected sort option
+    // --- Filter Handlers (Unchanged) ---
+    const handleApplyFilters = () =>
+    {
+        // Parse and validate local states
+        const from = parseFloat(localPriceFrom) || undefined;
+        const to = parseFloat(localPriceTo) || undefined;
+
+        // Update the main state, triggering fetchProducts due to dependency change
+        setPriceFrom(from);
+        setPriceTo(to);
+
+        // Reset page to 1
+        setPage(1);
+
+        // Close the dropdown
+        setIsFilterDropdownOpen(false);
+    };
+
+    const handleClearFilters = () =>
+    {
+        setPriceFrom(undefined);
+        setPriceTo(undefined);
+        setLocalPriceFrom('');
+        setLocalPriceTo('');
+        setPage(1);
+        setIsFilterDropdownOpen(false);
+    };
+    // ----------------------------
+
     const currentSortLabel = sortOptions.find(option => option.value === sort)?.label || 'Sort By';
 
     if (loading && data.length === 0)
@@ -121,23 +208,69 @@ const ProductsPage: React.FC = () =>
                 </div>
                 <div className="header-right">
                     {meta && meta.total > 0 && (
-                        // Use meta info for more accurate result count
                         <span>
                             Showing {meta.from}-{meta.to} of {meta.total} results
                         </span>
                     )}
                     |
-                    <button className="filter-btn" disabled={loading}>
-                        <img
-                            className="dropdown-icon"
-                            src={filterBtn}
-                            alt="Filter Icon"
-                        />
-                        <span>Filter</span>
-                    </button>
 
-                    {/* Sort Dropdown Container */}
-                    <div className="sort-dropdown-container">
+                    {/* Filter Dropdown Container */}
+                    <div className="filter-dropdown-container" ref={filterRef}>
+                        <button
+                            className="filter-btn"
+                            disabled={loading}
+                            onClick={() => setIsFilterDropdownOpen(c => !c)}
+                        >
+                            <img
+                                className="dropdown-icon"
+                                src={filterBtn}
+                                alt="Filter Icon"
+                            />
+                            <span>Filter</span>
+                        </button>
+
+                        {isFilterDropdownOpen && (
+                            <div className="filter-dropdown-menu">
+                                <h3 className="filter-title">Select Price</h3>
+                                <div className="price-inputs">
+                                    <input
+                                        type="number"
+                                        placeholder="From"
+                                        value={localPriceFrom}
+                                        onChange={(e) => setLocalPriceFrom(e.target.value)}
+                                        min="0"
+                                    />
+                                    <input
+                                        type="number"
+                                        placeholder="To"
+                                        value={localPriceTo}
+                                        onChange={(e) => setLocalPriceTo(e.target.value)}
+                                        min="0"
+                                    />
+                                </div>
+                                <div className="filter-actions">
+                                    <button
+                                        className="apply-btn"
+                                        onClick={handleApplyFilters}
+                                    >
+                                        Apply
+                                    </button>
+                                    {(priceFrom || priceTo) && (
+                                        <button
+                                            className="clear-btn"
+                                            onClick={handleClearFilters}
+                                        >
+                                            Clear
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    {/* End Filter Dropdown Container */}
+
+                    {/* Sort Dropdown Container - ADDED REF */}
+                    <div className="sort-dropdown-container" ref={sortRef}>
                         <button
                             className="sort-btn"
                             disabled={loading}

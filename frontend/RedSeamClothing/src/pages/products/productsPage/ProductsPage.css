@@ -88,7 +88,6 @@ body.dark .filter-btn .dropdown-icon {
     margin-left: 4px;
 }
 
-
 /* Product Card Dark Mode Example */
 .product-card {
     background-color: var(--surface-color);
@@ -131,79 +130,155 @@ body.dark .filter-btn .dropdown-icon {
     font-weight: bold;
 }
 
-/* Container for positioning the dropdown relative to the button */
+/* --- Sort Dropdown Styles --- */
 .sort-dropdown-container {
     position: relative;
     display: inline-block;
-    /* Maintain the alignment and gap from .header-right */
 }
 
-/* Dropdown Menu itself (The box that appears) */
 .sort-dropdown-menu {
     position: absolute;
-    /* Position slightly below the button, aligned to the right edge */
     top: 100%;
     right: 0;
-
     min-width: 200px;
-
     background-color: var(--surface-color);
-    /* Matches card/pagination background */
     border: 1px solid var(--border-color);
     border-radius: 5px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-
     z-index: 100;
-    /* Ensure it floats above all other elements */
-
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    /* Contains the rounded corners */
     margin-top: 5px;
-    /* Small gap between button and menu */
-
-    /* Ensure smooth theme transitions */
     transition: background-color var(--transition-speed) var(--transition-easing),
         border-color var(--transition-speed) var(--transition-easing);
 }
 
-/* Individual options inside the dropdown */
 .sort-option {
     width: 100%;
     padding: 10px 15px;
     text-align: left;
-
-    /* Reset button styles */
     background: none;
     border: none;
     color: var(--text-color);
     cursor: pointer;
     font-size: 14px;
-
-    /* Ensure smooth theme transitions */
     transition: background-color 0.2s, color 0.2s;
 }
 
-/* Hover state for options */
 .sort-option:hover {
     background-color: var(--button-hover-background-color);
     color: var(--button-text-color);
 }
 
-/* Active/Selected option styling */
 .sort-option.active {
     font-weight: bold;
-    /* Use a color that signifies selection */
     background-color: var(--button-background-color);
     color: white;
-    /* Ensure text is legible against the strong background */
 }
 
-/* Ensure the sort button respects the container styling */
 .sort-dropdown-container .sort-btn {
     padding: 5px 10px;
-    /* Match the .sort-btn/filter-btn padding */
+}
+
+/* --- Filter Dropdown Styles --- */
+
+.filter-dropdown-container {
+    position: relative;
+    display: inline-block;
+}
+
+.filter-dropdown-menu {
+    position: absolute;
+    top: 100%;
+
+    width: 500px;
+    max-width: 90vw;
+    left: -300px;
+
+    padding: 20px;
+    box-sizing: border-box;
+
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    margin-top: 5px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.filter-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--text-color);
+    margin: 0;
+    text-align: left;
+}
+
+.price-inputs {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+.price-inputs input {
+    flex-grow: 1;
+    padding: 10px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.price-inputs input:focus {
+    border-color: var(--primary-color);
+}
+
+.filter-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.apply-btn,
+.clear-btn {
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s, color 0.2s;
+    box-sizing: border-box;
+    /* Good practice for buttons */
+}
+
+.apply-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: 1px solid var(--primary-color);
+}
+
+.apply-btn:hover {
+    background-color: var(--primary-color-dark);
+}
+
+.clear-btn {
+    background-color: transparent;
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.clear-btn:hover {
+    background-color: var(--button-hover-background-color);
 }
 
 /* Mobile responsiveness */
