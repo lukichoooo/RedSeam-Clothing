@@ -5,6 +5,8 @@ import { type CartProductResponse } from "../../../services/cart/cartApi";
 import cartService from '../../../services/cart/CartService';
 import "./CartSidebar.css";
 
+import cartIcon from "../../../icons/sidebar/cart-icon.png";
+
 const CartSidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) =>
 {
     const [items, setItems] = useState<CartProductResponse[]>([]);
@@ -37,6 +39,7 @@ const CartSidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
     }, [isOpen, fetchCart]);
 
     const handleUpdateQuantity = useCallback(async (id: number, newQuantity: number) =>
+    // ... (handleUpdateQuantity implementation) ...
     {
         if (newQuantity < 1)
         {
@@ -70,6 +73,7 @@ const CartSidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
     }, []); // Removed fetchCart from dependencies to prevent unnecessary full fetches
 
     const handleRemoveFromCart = useCallback(async (id: number) =>
+    // ... (handleRemoveFromCart implementation) ...
     {
         // Optimistic UI Update: Remove item immediately from the state
         setItems(prevItems => prevItems.filter(item => item.id !== id));
@@ -119,6 +123,8 @@ const CartSidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                     <button className="close-btn" onClick={onClose}>×</button>
                 </div>
                 <div className="empty-cart">
+                    {/* ADDED: Cart icon image */}
+                    <img src={cartIcon} alt="Empty Cart Icon" className="empty-cart-icon" />
                     <h2>Ooops!</h2>
                     <p>You've got nothing in your cart just yet...</p>
                     <button
@@ -135,56 +141,81 @@ const CartSidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
             </div>
         );
     }
+    if (!isOpen) return null;
 
     return (
-        <div className={`cart-sidebar open`}>
-            <div className="cart-header">
-                <h2>Shopping Cart</h2>
-                <button className="close-btn" onClick={onClose}>×</button>
-            </div>
+        <>
+            {/* Overlay */}
+            <div className="cart-overlay" onClick={onClose}></div>
 
-            <div className="cart-items">
-                {items.map(item =>
-                {
-                    const itemColor = (item as any).color || 'NoColor';
-                    const itemSize = (item as any).size || 'NoSize';
+            {/* Sidebar */}
+            <div className={`cart-sidebar open`}>
+                <div className="cart-header">
+                    <h2>Shopping Cart</h2>
+                    <button className="close-btn" onClick={onClose}>×</button>
+                </div>
 
-                    // Using item.id is typically sufficient for cart actions, but the variant key is kept for UI rendering.
-                    const uniqueKey = `${item.id}-${itemColor}-${itemSize}`;
+                {/* Cart items and footer remain the same */}
+                <div className="cart-items">
+                    {items.map(item =>
+                    {
+                        const itemColor = (item as any).color || 'NoColor';
+                        const itemSize = (item as any).size || 'NoSize';
+                        const uniqueKey = `${item.id}-${itemColor}-${itemSize}`;
 
-                    return (
-                        <div key={uniqueKey} className="cart-item">
-                            <div className="cart-item-info">
-                                <strong>{item.name}</strong> - ${item.price}
+                        return (
+                            <div key={uniqueKey} className="cart-item">
+                                <img src={item.cover_image} alt={item.name} className="cart-item-image" />
+
+                                <div className="cart-item-details">
+                                    <div className="cart-item-top">
+                                        <div className="cart-item-info">
+                                            <strong>{item.name}</strong>
+                                            <div className="cart-item-meta">
+                                                <span>Color: {itemColor}</span>
+                                                <span>Size: {itemSize}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="cart-item-price">
+                                            <strong>${item.price}</strong>
+                                        </div>
+                                    </div>
+
+                                    <div className="cart-item-controls">
+                                        <button onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)} disabled={loading}>-</button>
+                                        <span>{item.quantity}</span>
+                                        <button onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)} disabled={loading}>+</button>
+                                    </div>
+
+                                    <button className="remove-btn" onClick={() => handleRemoveFromCart(item.id)} disabled={loading}>
+                                        Remove
+                                    </button>
+                                </div>
                             </div>
-                            <div className="cart-item-controls">
-                                <button onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)} disabled={loading}>-</button>
-                                <span>{item.quantity}</span>
-                                <button onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)} disabled={loading}>+</button>
-                                <button className="remove-btn" onClick={() => handleRemoveFromCart(item.id)} disabled={loading}>Remove</button>
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
+                        );
+                    })}
+                </div>
 
-            <div className="cart-footer">
-                <div className="summary-row">
-                    <span>Items Subtotal:</span>
-                    <span>${subtotal.toFixed(2)}</span>
+                <div className="cart-footer">
+                    <div className="summary-row">
+                        <span>Items Subtotal:</span>
+                        <span>${subtotal.toFixed(2)}</span>
+                    </div>
+                    <div className="summary-row">
+                        <span>Delivery:</span>
+                        <span>${delivery.toFixed(2)}</span>
+                    </div>
+                    <div className="summary-row total">
+                        <strong>Total:</strong>
+                        <strong>${total.toFixed(2)}</strong>
+                    </div>
+                    <button className="checkout-btn" onClick={() => navigate("/checkout")}>Go to Checkout</button>
                 </div>
-                <div className="summary-row">
-                    <span>Delivery:</span>
-                    <span>${delivery.toFixed(2)}</span>
-                </div>
-                <div className="summary-row total">
-                    <strong>Total:</strong>
-                    <strong>${total.toFixed(2)}</strong>
-                </div>
-                <button className="checkout-btn" onClick={() => navigate("/checkout")}>Go to Checkout</button>
             </div>
-        </div>
+        </>
     );
+
 };
 
 export default CartSidebar;
