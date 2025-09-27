@@ -5,13 +5,16 @@ import { Link } from 'react-router-dom';
 import passEyeIcon from '../../icons/auth/reveal-pass-img.png';
 import bgImage from '../../icons/auth/auth-page-bk-image.png';
 import authenticationService from "../../services/user/authenticationService";
+import userService from "../../services/user/userService"; // Import userService
 
 
 const RegistrationPage: React.FC = () =>
 {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [profileImage, setProfileImage] = useState<string | null>(null);
+
+    const [avatarFile, setAvatarFile] = useState<File | null>(null);
+    const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
 
     const togglePasswordVisibility = () =>
     {
@@ -29,7 +32,7 @@ const RegistrationPage: React.FC = () =>
         if (file)
         {
             const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
-            const maxSize = 2 * 1024 * 1024; // 2MB
+            const maxSize = 2 * 1024 * 1024;
 
             if (!validTypes.includes(file.type))
             {
@@ -42,14 +45,16 @@ const RegistrationPage: React.FC = () =>
                 return;
             }
 
-            setProfileImage(URL.createObjectURL(file));
+            setAvatarFile(file);
+            setProfileImagePreview(URL.createObjectURL(file));
         }
     };
 
 
     const handleImageRemove = () =>
     {
-        setProfileImage(null);
+        setAvatarFile(null);
+        setProfileImagePreview(null);
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) =>
@@ -60,9 +65,8 @@ const RegistrationPage: React.FC = () =>
         const email = (form.email as HTMLInputElement).value.trim();
         const password = (form.password as HTMLInputElement).value;
         const confirmPassword = (form["confirm-password"] as HTMLInputElement).value;
-        const avatar = form.profileUpload?.files?.[0] ?? null;
 
-        // Validation is already done
+        const avatar = avatarFile;
 
         try
         {
@@ -75,7 +79,7 @@ const RegistrationPage: React.FC = () =>
             });
 
             localStorage.setItem("token", res.token);
-            localStorage.setItem("user", JSON.stringify(res.user));
+            userService.setUserToLocalStorage(res.user);
 
             window.location.href = "/";
         } catch (err: any)
@@ -107,8 +111,8 @@ const RegistrationPage: React.FC = () =>
                     <form className="registration-form" onSubmit={handleSubmit}>
                         <div className="profile-image-section">
                             <div className="profile-image-container">
-                                {profileImage ? (
-                                    <img src={profileImage} alt="Profile" className="profile-image-preview" />
+                                {profileImagePreview ? (
+                                    <img src={profileImagePreview} alt="Profile" className="profile-image-preview" />
                                 ) : (
                                     <div className="profile-image-placeholder"></div>
                                 )}
@@ -120,6 +124,7 @@ const RegistrationPage: React.FC = () =>
                                 <input
                                     type="file"
                                     id="profile-upload"
+                                    name="profileUpload"
                                     accept="image/*"
                                     onChange={handleImageUpload}
                                     style={{ display: 'none' }}

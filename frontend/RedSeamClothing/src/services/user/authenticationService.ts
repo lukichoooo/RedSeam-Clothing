@@ -1,3 +1,4 @@
+import type { User } from "../../types";
 import api from "./api";
 
 export interface LoginResponse
@@ -69,6 +70,25 @@ const authenticationService = {
     getToken: (): string | null =>
     {
         return localStorage.getItem("token");
+    },
+
+
+    getCurrentUser: async (): Promise<User> =>
+    {
+        try
+        {
+            const response = await api.get<{ user: User }>('/profile', {
+                headers: {
+                    Accept: 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+            });
+            return response.data.user;
+        } catch (error)
+        {
+            console.error('Error fetching current user data:', error);
+            throw error;
+        }
     }
 };
 

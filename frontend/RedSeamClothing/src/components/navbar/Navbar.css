@@ -1,11 +1,11 @@
-/* Navbar */
+/* Navbar Base */
 .navbar {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
     height: var(--navbar-height);
-    padding: 10px 100px;
+    padding: 10px 40px;
     margin: 0 auto;
     position: sticky;
     top: 0;
@@ -13,6 +13,8 @@
     border-radius: 0 0 0.8rem 0.8rem;
     transition: background-color 0.3s, box-shadow 0.3s;
 }
+
+/* --- THEME STYLES --- */
 
 body.light .navbar {
     background-color: #fff;
@@ -24,33 +26,25 @@ body.dark .navbar {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 }
 
+/* --- LOGO --- */
+
 .navbar-logo {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    /* optional */
     width: 180px;
     height: 24px;
-    /* desired height */
     font-weight: 700;
     letter-spacing: -0.3px;
     gap: 4px;
     overflow: hidden;
-    /* prevent children from breaking the height */
+    cursor: pointer;
+    /* Added explicit pointer */
 }
 
 .navbar-logo img {
     height: 100%;
-    /* make image scale to parent height */
     width: auto;
-    /* maintain aspect ratio */
     transition: filter 0.3s ease;
-
-}
-
-/* Dark mode inversion */
-body.dark .navbar-logo img {
-    filter: invert(1) hue-rotate(180deg);
 }
 
 body.light .navbar-logo {
@@ -61,33 +55,88 @@ body.dark .navbar-logo {
     color: #f5f5f5;
 }
 
-/* Links container */
+body.dark .user-avatar {
+    filter: invert(0) hue-rotate(180deg);
+}
+
+body.light .user-avatar {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+/* Dark mode inversion for Logo */
+body.dark .navbar-logo img {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+/* --- LINKS AND ICONS CONTAINER --- */
+
 .navbar-links {
     display: flex;
-    gap: 0.5rem;
+    gap: 1rem;
     align-items: center;
 }
+
+/* --- CART ICON --- */
+.navbar-links .cart-icon {
+    width: 23px;
+    height: 24px;
+    cursor: pointer;
+    transition: opacity 0.2s, filter 0.3s ease;
+}
+
+/* NEW: Dark mode inversion for Cart Icon */
+body.dark .navbar-links .cart-icon {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+.navbar-links .cart-icon:hover {
+    opacity: 0.8;
+}
+
+/* --- LOGIN ICON --- */
 
 /* Login button link container */
 .nav-button.login {
     padding: 0;
     background: none;
     border: none;
+    display: flex;
 }
 
-/* Normal login icon */
-.nav-button.login img {
-    filter: none;
-    transition: filter 0.3s ease;
+.nav-button.login .login-icon {
+    width: 64px;
+    height: 20px;
+    transition: filter 0.3s ease, opacity 0.2s;
 }
 
-/* Dark mode inversion (same as logo) */
-body.dark .nav-button.login img {
+body.dark .nav-button.login .login-icon {
     filter: invert(1) hue-rotate(180deg);
 }
 
+.nav-button.login .login-icon:hover {
+    opacity: 0.8;
+}
 
-/* Theme toggle */
+/* --- USER AVATAR --- */
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-left: 0.5rem;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.user-avatar:hover {
+    transform: scale(1.05);
+    /* Slightly reduced scale for subtler effect */
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+}
+
+/* --- THEME TOGGLE --- */
+
 .theme-toggle {
     width: 2.5rem;
     height: 2.5rem;
@@ -99,8 +148,9 @@ body.dark .nav-button.login img {
     border-radius: 50%;
     font-size: 1rem;
     cursor: pointer;
-    margin-left: 0.8rem;
+    margin-left: 1rem;
     transition: background-color 0.3s, border-color 0.3s;
+    font-family: system-ui, sans-serif;
 }
 
 body.dark .theme-toggle {
@@ -114,4 +164,34 @@ body.dark .theme-toggle {
 
 body.dark .theme-toggle:hover {
     background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* --- RESPONSIVENESS --- */
+
+@media (max-width: 900px) {
+    .navbar {
+        padding: 10px 30px;
+    }
+}
+
+@media (max-width: 600px) {
+    .navbar {
+        padding: 10px 15px;
+        height: auto;
+    }
+
+    .navbar-logo {
+        width: 150px;
+        height: 20px;
+    }
+
+    .user-avatar {
+        width: 35px;
+        height: 35px;
+    }
+
+    .theme-toggle {
+        width: 2rem;
+        height: 2rem;
+    }
 }
