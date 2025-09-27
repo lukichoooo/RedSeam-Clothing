@@ -5,7 +5,7 @@ import api from '../api';
 export type Data =
     {
         id: number,
-        image: string
+        cover_image: string
         name: string,
         price: number,
         release_year: string

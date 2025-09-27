@@ -19,7 +19,6 @@ const getAbsoluteImageUrl = (path: string | undefined): string =>
     }
     return `${IMAGE_BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
 };
-// ---------------------------------------------
 
 const ProductsPage: React.FC = () =>
 {
@@ -133,8 +132,7 @@ const ProductsPage: React.FC = () =>
                         id={product.id}
                         name={product.name}
                         price={product.price}
-                        // Use the utility function to get the full image URL
-                        image={getAbsoluteImageUrl(product.image)}
+                        image={getAbsoluteImageUrl(product.cover_image)}
                     />
                 ))}
             </div>
