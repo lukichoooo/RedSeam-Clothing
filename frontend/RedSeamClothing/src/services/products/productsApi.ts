@@ -52,7 +52,7 @@ export type ProductByIdQuery =
         id: number
     }
 
-export type brand =
+export type Brand =
     {
         id: number,
         image: string,
@@ -61,7 +61,7 @@ export type brand =
 
 export type ProductByIdResponse =
     {
-        brand: brand,
+        brand: Brand,
         cover_image: string,
         description: string,
         id: number,

@@ -1,53 +1,55 @@
-import axios from 'axios';
-import type { CartProductResponse } from '../user/cart.types';
-import type { AddToCartPayload } from './cart.types';
+import api from '../api';
+import type { Brand } from '../products/productsApi';
 
-const API_BASE_URL = 'https://api.redseam.redberryinternship.ge/api';
+export type CartProductsQuery =
+    {
+        color: string;
+        quantity: number;
+        size: string;
+    };
 
-const apiClient = axios.create({
-    baseURL: API_BASE_URL,
-    headers: {
-        'Accept': 'application/json',
-    },
-});
+export type CartProductResponse =
+    {
+        brand: Brand,
+        cover_image: string,
+        description: string,
+        id: number,
+        images: string[],
+        name: string,
+        price: number,
+        quantity: number,
+        release_date: String,
+        total_price: number,
+    }
 
 export const cartApi = {
-    fetchCart: async (): Promise<CartProductResponse[]> =>
+
+    addProductToCart: async (productId: number, query: CartProductsQuery): Promise<CartProductResponse> =>
     {
-        const response = await apiClient.get<CartProductResponse[]>('/cart');
+        const response = await api.post<CartProductResponse>(`/cart/products/${productId}`, query);
         return response.data;
     },
 
-    addProductToCart: async (productId: number, payload: AddToCartPayload): Promise<CartProductResponse> =>
+    updateProductQuantity: async (productId: number, quantity: number): Promise<CartProductResponse> =>
     {
-        const response = await apiClient.post<CartProductResponse>(`/cart/products/${productId}`, payload);
-        return response.data;
-    },
-
-    updateProductQuantity: async (productId: number, newQuantity: number): Promise<CartProductResponse> =>
-    {
-        const response = await apiClient.patch<CartProductResponse>(`/cart/products/${productId}`, { quantity: newQuantity });
+        const response = await api.patch<CartProductResponse>(`/cart/products/${productId}`, quantity);
         return response.data;
     },
 
     removeProductFromCart: async (productId: number): Promise<void> =>
     {
-        await apiClient.delete(`/cart/products/${productId}`);
+        await api.delete(`/cart/products/${productId}`);
+    },
+
+    fetchCart: async (): Promise<CartProductResponse[]> =>
+    {
+        const response = await api.get<CartProductResponse[]>('/cart');
+        return response.data;
     },
 
     checkout: async (): Promise<{ message: string }> =>
     {
-        const response = await apiClient.post<{ message: string }>('/cart/checkout');
+        const response = await api.post<{ message: string }>('/cart/checkout');
         return response.data;
     },
 };
-
-apiClient.interceptors.request.use(config =>
-{
-    const token = localStorage.getItem('token');
-    if (token)
-    {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-});

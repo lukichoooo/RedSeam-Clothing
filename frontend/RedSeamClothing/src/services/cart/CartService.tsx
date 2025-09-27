@@ -1,0 +1,81 @@
+import { cartApi, type CartProductResponse, type CartProductsQuery } from './cartApi';
+
+
+export type ProductData =
+    {
+        id: number;
+        color: string;
+        size: string;
+        quantity: number;
+    };
+
+export const cartService = {
+    fetchCart: async (): Promise<CartProductResponse[]> =>
+    {
+        try
+        {
+            const cartItems: CartProductResponse[] = await cartApi.fetchCart();
+            return cartItems;
+        } catch (error)
+        {
+            throw new Error("Failed to load cart items.");
+        }
+    },
+
+    addToCart: async (productData: ProductData): Promise<void> =>
+    {
+        const { id, color, size, quantity } = productData;
+
+        const payload: CartProductsQuery = {
+            quantity,
+            color,
+            size
+        };
+
+        try
+        {
+            await cartApi.addProductToCart(id, payload);
+        } catch (error)
+        {
+            throw new Error(`Failed to add product ${id} to cart.`);
+        }
+    },
+
+    updateQuantity: async (id: number, newQuantity: number): Promise<void> =>
+    {
+        const validQuantity = Math.max(1, newQuantity);
+
+        try
+        {
+            await cartApi.updateProductQuantity(id, validQuantity);
+        } catch (error)
+        {
+            throw new Error(`Failed to update quantity for product ${id}.`);
+        }
+    },
+
+    removeFromCart: async (id: number): Promise<void> =>
+    {
+        try
+        {
+            await cartApi.removeProductFromCart(id);
+        } catch (error)
+        {
+            throw new Error(`Failed to remove product ${id} from cart.`);
+        }
+    },
+
+    checkout: async (): Promise<{ success: boolean; message: string }> =>
+    {
+        try
+        {
+            const response = await cartApi.checkout();
+            return { success: true, message: response.message };
+        } catch (error)
+        {
+            return { success: false, message: "Checkout failed. Please try again." };
+        }
+    },
+};
+
+export default cartService;
