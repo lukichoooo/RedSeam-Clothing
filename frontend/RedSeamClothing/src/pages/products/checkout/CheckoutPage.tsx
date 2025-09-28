@@ -87,12 +87,12 @@ const CheckoutPage: React.FC = () =>
     }, []);
 
     const handleRemoveFromCart = useCallback(
-        async (id: number) =>
+        async (id: number, color: string, size: string) =>
         {
             setCheckoutMessage(null);
             try
             {
-                await cartService.removeFromCart(id);
+                await cartService.removeFromCart(id, color, size);
                 await fetchCart();
             } catch (error)
             {
@@ -103,18 +103,18 @@ const CheckoutPage: React.FC = () =>
     );
 
     const handleUpdateQuantity = useCallback(
-        async (id: number, newQuantity: number) =>
+        async (id: number, newQuantity: number, color: string, size: string) =>
         {
             setCheckoutMessage(null);
             if (newQuantity < 1)
             {
-                await handleRemoveFromCart(id);
+                await handleRemoveFromCart(id, color, size);
                 return;
             }
 
             try
             {
-                await cartService.updateQuantity(id, newQuantity);
+                await cartService.updateQuantity(id, newQuantity, color, size);
                 await fetchCart();
             } catch (error)
             {
@@ -276,7 +276,7 @@ const CheckoutPage: React.FC = () =>
                                 {item.name}
                                 <button
                                     className="remove-btn"
-                                    onClick={() => handleRemoveFromCart(item.id)}
+                                    onClick={() => handleRemoveFromCart(item.id, item.color, item.size)}
                                 >
                                     Remove
                                 </button>
@@ -289,7 +289,7 @@ const CheckoutPage: React.FC = () =>
                             <div className="checkout-item-controls">
                                 <button
                                     onClick={() =>
-                                        handleUpdateQuantity(item.id, item.quantity - 1)
+                                        handleUpdateQuantity(item.id, item.quantity - 1, item.color, item.size)
                                     }
                                 >
                                     –
@@ -297,7 +297,7 @@ const CheckoutPage: React.FC = () =>
                                 <span>{item.quantity}</span>
                                 <button
                                     onClick={() =>
-                                        handleUpdateQuantity(item.id, item.quantity + 1)
+                                        handleUpdateQuantity(item.id, item.quantity + 1, item.color, item.size)
                                     }
                                 >
                                     +
