@@ -59,6 +59,19 @@
     color: var(--form-text-color);
 }
 
+/* highlight input when error */
+.form-group.has-error input {
+    border-color: red;
+}
+
+/* error text below input */
+.error-text {
+    color: red;
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+
 .form-group input {
     width: 100%;
     padding: 10px;

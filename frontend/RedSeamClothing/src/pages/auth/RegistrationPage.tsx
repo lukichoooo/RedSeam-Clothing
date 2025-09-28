@@ -5,8 +5,7 @@ import { Link } from 'react-router-dom';
 import passEyeIcon from '../../icons/auth/reveal-pass-img.png';
 import bgImage from '../../icons/auth/auth-page-bk-image.png';
 import authenticationService from "../../services/user/authenticationService";
-import userService from "../../services/user/userService"; // Import userService
-
+import userService from "../../services/user/userService";
 
 const RegistrationPage: React.FC = () =>
 {
@@ -16,15 +15,17 @@ const RegistrationPage: React.FC = () =>
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
 
-    const togglePasswordVisibility = () =>
-    {
-        setShowPassword(!showPassword);
-    };
+    const [errors, setErrors] = useState<{
+        username?: string;
+        email?: string;
+        password?: string;
+        confirmPassword?: string;
+        avatar?: string;
+    }>({});
 
-    const toggleConfirmPasswordVisibility = () =>
-    {
-        setShowConfirmPassword(!showConfirmPassword);
-    };
+
+    const togglePasswordVisibility = () => setShowPassword(!showPassword);
+    const toggleConfirmPasswordVisibility = () => setShowConfirmPassword(!showConfirmPassword);
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) =>
     {
@@ -36,20 +37,20 @@ const RegistrationPage: React.FC = () =>
 
             if (!validTypes.includes(file.type))
             {
-                alert('Only JPG, PNG, and WEBP images are allowed.');
+                setErrors({ avatar: 'Only JPG, PNG, and WEBP images are allowed.' });
                 return;
             }
             if (file.size > maxSize)
             {
-                alert('File size must be under 2MB.');
+                setErrors({ avatar: 'File size must be under 2MB.' });
                 return;
             }
 
             setAvatarFile(file);
             setProfileImagePreview(URL.createObjectURL(file));
+            setErrors(prev => ({ ...prev, avatar: undefined }));
         }
     };
-
 
     const handleImageRemove = () =>
     {
@@ -64,9 +65,22 @@ const RegistrationPage: React.FC = () =>
         const username = (form.username as HTMLInputElement).value.trim();
         const email = (form.email as HTMLInputElement).value.trim();
         const password = (form.password as HTMLInputElement).value;
-        const confirmPassword = (form["confirm-password"] as HTMLInputElement).value;
+        const confirmPassword = (form['confirm-password'] as HTMLInputElement).value;
 
-        const avatar = avatarFile;
+        const newErrors: typeof errors = {};
+
+        if (!username) newErrors.username = "Username is required.";
+        if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = "Please enter a valid email.";
+        if (password.length < 6) newErrors.password = "Password must be at least 6 characters.";
+        if (password !== confirmPassword) newErrors.confirmPassword = "Passwords do not match.";
+
+        if (Object.keys(newErrors).length > 0)
+        {
+            setErrors(newErrors);
+            return;
+        }
+
+        setErrors({}); // clear errors
 
         try
         {
@@ -75,35 +89,36 @@ const RegistrationPage: React.FC = () =>
                 email,
                 password,
                 password_confirmation: confirmPassword,
-                avatar: avatar,
+                avatar: avatarFile,
             });
 
             localStorage.setItem("token", res.token);
             userService.setUserToLocalStorage(res.user);
-
             window.location.href = "/";
         } catch (err: any)
         {
-            if (err.response?.status === 422)
+            if (err.response?.status === 422 && err.response.data?.errors)
             {
-                alert("Validation error. Please check your inputs.");
+                const apiErrors: any = {};
+                for (const key in err.response.data.errors)
+                {
+                    apiErrors[key as keyof typeof errors] = err.response.data.errors[key][0];
+                }
+                setErrors(apiErrors);
             } else
             {
-                alert("Something went wrong. Please try again later.");
+                setErrors({ email: "Something went wrong. Please try again later." });
             }
         }
     };
 
-
     return (
         <div className="page-container">
             <div className="image-section">
-                <div className="page-image">
-                    <div
-                        className="page-image"
-                        style={{ backgroundImage: `url(${bgImage})` }}
-                    ></div>
-                </div>
+                <div
+                    className="page-image"
+                    style={{ backgroundImage: `url(${bgImage})` }}
+                ></div>
             </div>
             <div className="form-section">
                 <div className="form-content">
@@ -133,17 +148,20 @@ const RegistrationPage: React.FC = () =>
                                     Remove
                                 </span>
                             </div>
+                            {errors.avatar && <p className="error-text">{errors.avatar}</p>}
                         </div>
-                        <div className="form-group">
-                            <label htmlFor="username" />
+
+                        <div className={`form-group ${errors.username ? "has-error" : ""}`}>
                             <input type="text" id="username" name="username" placeholder="Username" required />
+                            {errors.username && <p className="error-text">{errors.username}</p>}
                         </div>
-                        <div className="form-group">
-                            <label htmlFor="email" />
+
+                        <div className={`form-group ${errors.email ? "has-error" : ""}`}>
                             <input type="email" id="email" name="email" placeholder="Email" required />
+                            {errors.email && <p className="error-text">{errors.email}</p>}
                         </div>
-                        <div className="form-group">
-                            <label htmlFor="password" />
+
+                        <div className={`form-group ${errors.password ? "has-error" : ""}`}>
                             <div className="password-input-container">
                                 <input
                                     type={showPassword ? 'text' : 'password'}
@@ -152,19 +170,14 @@ const RegistrationPage: React.FC = () =>
                                     placeholder="Password"
                                     required
                                 />
-                                <span
-                                    className="password-toggle"
-                                    onClick={togglePasswordVisibility}
-                                >
-                                    <img
-                                        src={passEyeIcon}
-                                        style={{ scale: '0.5' }}
-                                    />
+                                <span className="password-toggle" onClick={togglePasswordVisibility}>
+                                    <img src={passEyeIcon} style={{ scale: '0.5' }} />
                                 </span>
                             </div>
+                            {errors.password && <p className="error-text">{errors.password}</p>}
                         </div>
-                        <div className="form-group">
-                            <label htmlFor="confirm-password" />
+
+                        <div className={`form-group ${errors.confirmPassword ? "has-error" : ""}`}>
                             <div className="password-input-container">
                                 <input
                                     type={showConfirmPassword ? 'text' : 'password'}
@@ -173,20 +186,14 @@ const RegistrationPage: React.FC = () =>
                                     placeholder="Confirm password"
                                     required
                                 />
-                                <span
-                                    className="password-toggle"
-                                    onClick={toggleConfirmPasswordVisibility}
-                                >
-                                    <img
-                                        src={passEyeIcon}
-                                        style={{ scale: '0.5' }}
-                                    />
+                                <span className="password-toggle" onClick={toggleConfirmPasswordVisibility}>
+                                    <img src={passEyeIcon} style={{ scale: '0.5' }} />
                                 </span>
                             </div>
+                            {errors.confirmPassword && <p className="error-text">{errors.confirmPassword}</p>}
                         </div>
-                        <button type="submit" className="auth-button" >
-                            Register
-                        </button>
+
+                        <button type="submit" className="auth-button">Register</button>
                         <div className="login-link">
                             Already a member? <Link to="/login">Log in</Link>
                         </div>
