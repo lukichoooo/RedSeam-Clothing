@@ -35,6 +35,7 @@ const ProductPage: React.FC = () =>
     const [selectedImage, setSelectedImage] = useState("");
     const [selectedColor, setSelectedColor] = useState("");
     const [selectedSize, setSelectedSize] = useState("");
+    // 1. ADD: State for quantity
     const [quantity, setQuantity] = useState(1);
 
     const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -79,18 +80,15 @@ const ProductPage: React.FC = () =>
         return map;
     }, [productImages]);
 
-    // FIX 1: Utility to check if a color is available (has a mapped image)
     const isColorAvailable = useCallback((color: string): boolean =>
     {
         return colorImageMap.has(color);
     }, [colorImageMap]);
 
 
-    // --- Handlers for Two-Way Sync ---
 
     const handleColorSelect = useCallback((color: string) =>
     {
-        // Only allow selection if the color is available
         if (!isColorAvailable(color)) return;
 
         setSelectedColor(color);
@@ -113,7 +111,7 @@ const ProductPage: React.FC = () =>
         }
     }, [imageColorMap]);
 
-    // --- Initial Load Effect ---
+    // --- Initial Load Effect (Fetch Data) ---
 
     useEffect(() =>
     {
@@ -132,31 +130,9 @@ const ProductPage: React.FC = () =>
             {
                 const fetchedProduct = await productsApi.fetchProductById({ id: productId });
                 setProduct(fetchedProduct);
+                // 2. CHANGE: Set default quantity to 1
                 setQuantity(1);
-
-                // Determine the first available color
-                const availableColors = SIMULATED_COLORS.filter(color => colorImageMap.has(color));
-
-                // Default selection is the first available color, or the first simulated color if maps are empty
-                const defaultColor = availableColors[0] || SIMULATED_COLORS[0] || "";
-                setSelectedColor(defaultColor);
                 setSelectedSize(PRODUCT_SIZES[0] || "");
-
-                // Set default image based on the default color mapping
-                const defaultImage = colorImageMap.get(defaultColor);
-
-                if (defaultImage)
-                {
-                    setSelectedImage(defaultImage);
-                } else
-                {
-                    // Fallback to the first raw image if mapping failed
-                    const availableImages = fetchedProduct.images && fetchedProduct.images.length > 0
-                        ? fetchedProduct.images
-                        : (fetchedProduct.cover_image ? [fetchedProduct.cover_image] : []);
-                    setSelectedImage(getAbsoluteImageUrl(availableImages[0]));
-                }
-
             } catch (err)
             {
                 setError("Failed to load product data.");
@@ -167,17 +143,46 @@ const ProductPage: React.FC = () =>
             }
         };
 
-        // We call loadProduct directly, but we rely on the `useMemo` hooks (productImages, colorImageMap)
-        // being calculated *after* setProduct runs. This is handled naturally by React's rendering cycle.
         loadProduct();
     }, [productId]);
+
+
+    // Effect to handle default color/image selection AFTER product and maps are ready
+    useEffect(() =>
+    {
+        if (product && productImages.length > 0 && colorImageMap.size > 0)
+        {
+
+            const availableColors = SIMULATED_COLORS.filter(color => colorImageMap.has(color));
+            const defaultColor = availableColors[0] || SIMULATED_COLORS[0] || "";
+
+            // Only update if the selected color hasn't been set yet (initial load)
+            if (!selectedColor)
+            {
+                setSelectedColor(defaultColor);
+            }
+
+            const defaultImage = colorImageMap.get(selectedColor || defaultColor);
+
+            if (defaultImage)
+            {
+                setSelectedImage(defaultImage);
+            } else if (productImages.length > 0)
+            {
+                setSelectedImage(productImages[0]);
+            }
+        }
+    }, [product, productImages, colorImageMap, selectedColor]);
 
 
     const handleAddToCart = useCallback(async () =>
     {
         if (!product) return;
 
-        if (!selectedColor || !selectedSize || quantity < 1)
+        // 3. CHANGE: Use the state quantity
+        const quantityToAdd = quantity;
+
+        if (!selectedColor || !selectedSize || quantityToAdd < 1)
         {
             alert("Please select a color, size, and quantity.");
             return;
@@ -187,7 +192,7 @@ const ProductPage: React.FC = () =>
             id: product.id,
             color: selectedColor,
             size: selectedSize,
-            quantity: quantity,
+            quantity: quantityToAdd, // Use state quantity
         };
 
         try
@@ -199,7 +204,7 @@ const ProductPage: React.FC = () =>
             console.error("Error adding to cart:", e);
             alert("Could not add product to cart. Please try again.");
         }
-    }, [product, selectedColor, selectedSize, quantity]);
+    }, [product, selectedColor, selectedSize, quantity]); // 4. DEPENDENCY: Add quantity to dependency array
 
 
     if (loading) return <div className="product-page-loading">Loading product details...</div>;
@@ -210,6 +215,7 @@ const ProductPage: React.FC = () =>
     return (
         <>
             <div className="product-page">
+                {/* ... existing JSX for product-page-left and product-page-right ... */}
                 <div className="product-page-left">
                     <div className="thumbnail-list">
                         {productImages.map((img, idx) => (
@@ -238,15 +244,15 @@ const ProductPage: React.FC = () =>
                         <div className="color-options">
                             {SIMULATED_COLORS.map((color, idx) =>
                             {
-                                const isAvailable = isColorAvailable(color); // FIX 2: Check availability
+                                const isAvailable = isColorAvailable(color);
 
                                 return (
                                     <span
                                         key={idx}
                                         style={{ backgroundColor: color }}
-                                        className={`color-swatch ${color === selectedColor ? "selected" : ""} ${!isAvailable ? "disabled" : ""}`} // FIX 3: Add disabled class
+                                        className={`color-swatch ${color === selectedColor ? "selected" : ""} ${!isAvailable ? "disabled" : ""}`}
                                         title={color + (!isAvailable ? " (Unavailable)" : "")}
-                                        onClick={() => isAvailable ? handleColorSelect(color) : undefined} // FIX 4: Conditional click handler
+                                        onClick={() => isAvailable ? handleColorSelect(color) : undefined}
                                     ></span>
                                 );
                             })}
@@ -268,16 +274,17 @@ const ProductPage: React.FC = () =>
                         </div>
                     </div>
 
-
+                    {/* 5. ADD: Quantity selector */}
                     <div className="product-quantity">
                         <span className="label">Quantity:</span>
                         <select
                             value={quantity}
                             onChange={(e) => setQuantity(Number(e.target.value))}
                         >
-                            {Array.from({ length: Math.min(10, product.quantity) }, (_, i) => i + 1).map((q) => (
-                                <option key={q} value={q}>
-                                    {q}
+                            {/* Option list for quantity (e.g., 1 to 10) */}
+                            {[...Array(10)].map((_, i) => (
+                                <option key={i + 1} value={i + 1}>
+                                    {i + 1}
                                 </option>
                             ))}
                         </select>
@@ -286,6 +293,7 @@ const ProductPage: React.FC = () =>
                     <button
                         className="add-to-cart"
                         onClick={handleAddToCart}
+                        // Check for quantity > 0 as well
                         disabled={!selectedColor || !selectedSize || quantity < 1}
                     >
                         Add to Cart

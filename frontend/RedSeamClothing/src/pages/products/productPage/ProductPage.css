@@ -60,35 +60,30 @@
     border-color: var(--primary-color, #222);
 }
 
-/* FIX: New style for disabled color swatches */
 .color-options span.disabled {
     cursor: not-allowed;
     opacity: 0.4;
-    /* Visually dim the swatch */
     border-color: #ccc;
-    /* Make sure border is visible */
-    /* Add a cross-out effect or similar visual clue if desired */
-    /* Example for a cross-out: */
-    /* position: relative; */
 }
 
-/* .color-options span.disabled::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 10%;
-    width: 80%;
-    height: 1px;
-    background-color: #666;
-    transform: rotate(45deg);
-} */
-
+.product-quantity {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
 
 .product-quantity select {
     margin-top: 5px;
-    padding: 5px;
+    padding: 8px 10px;
     border-radius: 4px;
-    color: black;
+    color: #222;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    min-width: 40px;
+    max-width: 60px;
+    height: 38px;
+    appearance: none;
+    cursor: pointer;
 }
 
 .add-to-cart {

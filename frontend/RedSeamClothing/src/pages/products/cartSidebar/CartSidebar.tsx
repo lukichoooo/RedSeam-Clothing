@@ -1,15 +1,19 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-// FIX: Import cartService and the correct item type (CartProductResponse)
 import { type CartProductResponse } from "../../../services/cart/cartApi";
 import cartService from '../../../services/cart/CartService';
 import "./CartSidebar.css";
 
 import cartIcon from "../../../icons/sidebar/cart-icon.png";
 
+type CartItemWithDetails = CartProductResponse & {
+    color: string;
+    size: string;
+};
+
 const CartSidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) =>
 {
-    const [items, setItems] = useState<CartProductResponse[]>([]);
+    const [items, setItems] = useState<CartItemWithDetails[]>([]);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
@@ -18,7 +22,7 @@ const CartSidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
         setLoading(true);
         try
         {
-            const fetchedItems = await cartService.fetchCart();
+            const fetchedItems = await cartService.fetchCart() as CartItemWithDetails[];
             setItems(fetchedItems);
         } catch (error)
         {
@@ -38,54 +42,60 @@ const CartSidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
         }
     }, [isOpen, fetchCart]);
 
-    // cartItemId is assumed to be the unique identifier for the specific cart line item (product + color + size)
-    const handleUpdateQuantity = useCallback(async (cartItemId: number, newQuantity: number) =>
+    const getUniqueLineItemId = (item: CartItemWithDetails): string =>
+    {
+        return `${item.id}-${item.color}-${item.size}`;
+    };
+
+    const handleUpdateQuantity = useCallback(async (productId: number, uniqueId: string, color: string, size: string, newQuantity: number) =>
     {
         if (newQuantity < 1)
         {
-            // If new quantity is < 1, delegate to remove handler
-            await handleRemoveFromCart(cartItemId);
+            await handleRemoveFromCart(productId, uniqueId, color, size);
             return;
         }
 
-        // Optimistic UI Update
         setItems(prevItems =>
             prevItems.map(item =>
-                item.id === cartItemId ? { ...item, quantity: newQuantity } : item
-            )
+            {
+                const currentUniqueId = getUniqueLineItemId(item);
+                if (currentUniqueId === uniqueId)
+                {
+                    const newTotalPrice = item.price * newQuantity;
+                    return { ...item, quantity: newQuantity, total_price: newTotalPrice };
+                }
+                return item;
+            })
         );
 
         try
         {
-            await cartService.updateQuantity(cartItemId, newQuantity);
+            await cartService.updateQuantity(productId, newQuantity, color, size);
         } catch (error)
         {
-            // Revert state change if API call fails
-            console.error(`Failed to update quantity for cart item ${cartItemId}:`, error);
-            await fetchCart(); // Re-fetch to synchronize state with server
+            console.error(`Failed to update quantity for cart item with Product ID ${productId}:`, error);
+            await fetchCart();
         }
     }, [fetchCart]);
 
-    // cartItemId is assumed to be the unique identifier for the specific cart line item
-    const handleRemoveFromCart = useCallback(async (cartItemId: number) =>
+    const handleRemoveFromCart = useCallback(async (productId: number, uniqueId: string, color: string, size: string) =>
     {
-        // Optimistic UI Update: Remove item immediately from the state
-        setItems(prevItems => prevItems.filter(item => item.id !== cartItemId));
+        setItems(prevItems =>
+            prevItems.filter(item => getUniqueLineItemId(item) !== uniqueId)
+        );
 
         try
         {
-            await cartService.removeFromCart(cartItemId);
+            await cartService.removeFromCart(productId, color, size);
         } catch (error)
         {
-            // If removal fails, re-fetch the entire cart to revert the optimistic removal
-            console.error(`Failed to remove cart item ${cartItemId} from cart:`, error);
-            await fetchCart(); // Re-fetch to synchronize state with server
+            console.error(`Failed to remove cart item with Product ID ${productId} from cart:`, error);
+            await fetchCart();
         }
     }, [fetchCart]);
 
 
     const delivery = 10;
-    // Calculation uses local state
     const subtotal = useMemo(() => items.reduce((sum, item) => sum + item.price * item.quantity, 0), [items]);
     const total = subtotal + delivery;
 
@@ -145,13 +155,13 @@ const CartSidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                 <div className="cart-items">
                     {items.map(item =>
                     {
-                        // Assuming the API provides color and size on the CartProductResponse object
-                        const itemColor = (item as any).color || 'N/A';
-                        const itemSize = (item as any).size || 'N/A';
+                        const uniqueId = getUniqueLineItemId(item);
+                        const itemColor = item.color;
+                        const itemSize = item.size;
+                        const productId = item.id;
 
-                        // Use item.id as the unique key for React rendering and for handler functions (assuming it's the unique cart item ID)
                         return (
-                            <div key={item.id} className="cart-item">
+                            <div key={uniqueId} className="cart-item">
                                 <img src={item.cover_image} alt={item.name} className="cart-item-image" />
 
                                 <div className="cart-item-details">
@@ -170,13 +180,12 @@ const CartSidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                                     </div>
 
                                     <div className="cart-item-controls">
-                                        <button onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)} disabled={loading || item.quantity <= 1}>-</button>
+                                        <button onClick={() => handleUpdateQuantity(productId, uniqueId, itemColor, itemSize, item.quantity - 1)} disabled={loading || item.quantity <= 1}>-</button>
                                         <span>{item.quantity}</span>
-                                        <button onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)} disabled={loading}>+</button>
+                                        <button onClick={() => handleUpdateQuantity(productId, uniqueId, itemColor, itemSize, item.quantity + 1)} disabled={loading}>+</button>
                                     </div>
 
-                                    {/* Using item.id as the unique Cart Item ID */}
-                                    <button className="remove-btn" onClick={() => handleRemoveFromCart(item.id)} disabled={loading}>
+                                    <button className="remove-btn" onClick={() => handleRemoveFromCart(productId, uniqueId, itemColor, itemSize)} disabled={loading}>
                                         Remove
                                     </button>
                                 </div>

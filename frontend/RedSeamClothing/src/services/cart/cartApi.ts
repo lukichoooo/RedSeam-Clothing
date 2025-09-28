@@ -20,6 +20,8 @@ export type CartProductResponse =
         quantity: number,
         release_date: String,
         total_price: number,
+        color: string,
+        size: string,
     }
 
 export type CheckoutDetails =
@@ -40,16 +42,27 @@ export const cartApi = {
         return response.data;
     },
 
-    updateProductQuantity: async (productId: number, newQuantity: number): Promise<CartProductResponse> =>
+    updateProductQuantity: async (productId: number, newQuantity: number, color: string, size: string): Promise<CartProductResponse> =>
     {
-        const response = await api.patch<CartProductResponse>(`/cart/products/${productId}`, { quantity: newQuantity });
+        const payload = {
+            quantity: newQuantity,
+            color,
+            size,
+        };
+        const response = await api.patch<CartProductResponse>(`/cart/products/${productId}`, payload);
         return response.data;
     },
 
-    removeProductFromCart: async (productId: number): Promise<void> =>
+    removeProductFromCart: async (productId: number, color: string, size: string): Promise<void> =>
     {
-        await api.delete(`/cart/products/${productId}`);
+        const payload = {
+            color,
+            size
+        };
+
+        await api.delete(`/cart/products/${productId}`, { data: payload });
     },
+
 
     fetchCart: async (): Promise<CartProductResponse[]> =>
     {
@@ -57,9 +70,9 @@ export const cartApi = {
         return response.data;
     },
 
-    // FIX: Update checkout to accept the required details and send them in the request body
     checkout: async (details: CheckoutDetails): Promise<{ message: string }> =>
     {
+        // This was already correct, sending details in the request body.
         const response = await api.post<{ message: string }>('/cart/checkout', details);
         return response.data;
     },

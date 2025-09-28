@@ -37,31 +37,31 @@ export const cartService = {
             await cartApi.addProductToCart(id, payload);
         } catch (error)
         {
-            throw new Error(`Failed to add product ${id} to cart.`);
+            throw new Error(`Failed to add product ${id} with color ${color} and size ${size} to cart.`);
         }
     },
 
-    updateQuantity: async (id: number, newQuantity: number): Promise<void> =>
+    updateQuantity: async (id: number, newQuantity: number, color: string, size: string): Promise<void> =>
     {
         const validQuantity = Math.max(1, newQuantity);
 
         try
         {
-            await cartApi.updateProductQuantity(id, validQuantity);
+            await cartApi.updateProductQuantity(id, validQuantity, color, size);
         } catch (error)
         {
-            throw new Error(`Failed to update quantity for product ${id}.`);
+            throw new Error(`Failed to update quantity for product ${id} (Color: ${color}, Size: ${size}).`);
         }
     },
 
-    removeFromCart: async (id: number): Promise<void> =>
+    removeFromCart: async (id: number, color: string, size: string): Promise<void> =>
     {
         try
         {
-            await cartApi.removeProductFromCart(id);
+            await cartApi.removeProductFromCart(id, color, size);
         } catch (error)
         {
-            throw new Error(`Failed to remove product ${id} from cart.`);
+            throw new Error(`Failed to remove product ${id} (Color: ${color}, Size: ${size}) from cart.`);
         }
     },
     checkout: async (checkoutDetails: CheckoutDetails): Promise<{ success: boolean; message: string }> =>
