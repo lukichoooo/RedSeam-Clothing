@@ -22,9 +22,7 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    border-bottom: 1px solid var(--border-color);
     flex-wrap: wrap;
-    transition: border-color var(--transition-speed) var(--transition-easing);
 }
 
 .header-left h1 {
@@ -86,18 +84,6 @@ body.dark .filter-btn .dropdown-icon {
     width: 24px;
     height: 24px;
     margin-left: 4px;
-}
-
-/* Product Card Dark Mode Example */
-.product-card {
-    background-color: var(--surface-color);
-    color: var(--text-color);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    overflow: hidden;
-    transition: background-color var(--transition-speed) var(--transition-easing),
-        color var(--transition-speed) var(--transition-easing),
-        border-color var(--transition-speed) var(--transition-easing);
 }
 
 /* Pagination */
