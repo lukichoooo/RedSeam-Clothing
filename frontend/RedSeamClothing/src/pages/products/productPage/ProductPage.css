@@ -60,6 +60,30 @@
     border-color: var(--primary-color, #222);
 }
 
+/* FIX: New style for disabled color swatches */
+.color-options span.disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+    /* Visually dim the swatch */
+    border-color: #ccc;
+    /* Make sure border is visible */
+    /* Add a cross-out effect or similar visual clue if desired */
+    /* Example for a cross-out: */
+    /* position: relative; */
+}
+
+/* .color-options span.disabled::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 10%;
+    width: 80%;
+    height: 1px;
+    background-color: #666;
+    transform: rotate(45deg);
+} */
+
+
 .product-quantity select {
     margin-top: 5px;
     padding: 5px;
@@ -90,8 +114,6 @@
     margin-top: 30px;
 }
 
-/* NEW/FIXED CSS FOR SIZE BUTTONS */
-
 .product-size {
     display: flex;
     flex-direction: column;
@@ -106,7 +128,6 @@
 .size-button {
     padding: 8px 15px;
     border: 1px solid #ccc;
-    /* FIX: Transparent background */
     background-color: transparent;
     color: #222;
     cursor: pointer;
@@ -120,9 +141,7 @@
 }
 
 .size-button.selected {
-    /* Selected state: Primary color background with white text */
     background-color: var(--primary-color, #222);
     color: #fff;
-    /* White text for selected button */
     border-color: var(--primary-color, #222);
 }

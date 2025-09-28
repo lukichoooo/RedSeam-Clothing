@@ -69,23 +69,17 @@ export const cartService = {
         try
         {
             const response = await cartApi.checkout(checkoutDetails);
-            // This runs on successful 2xx response
             return { success: true, message: response.message };
         } catch (error: any)
         {
-            // This runs on non-2xx response (4xx, 5xx) or network errors
-
-            // Check if it's an Axios error with a response from the server
             if (error.response && error.response.data && error.response.data.message)
             {
-                // Return the specific server message from the response body
                 return {
                     success: false,
                     message: error.response.data.message
                 };
             }
 
-            // Handle network errors or unexpected exceptions with a generic message
             return { success: false, message: "Checkout failed. Please try again." };
         }
     },

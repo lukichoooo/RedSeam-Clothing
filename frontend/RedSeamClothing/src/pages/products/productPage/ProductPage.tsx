@@ -1,10 +1,8 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import CartSidebar from "../cartSidebar/CartSidebar";
 import "./ProductPage.css";
 import { productsApi, type ProductByIdResponse } from "../../../services/products/productsApi";
-
-
 import cartService, { type ProductData } from "../../../services/cart/CartService";
 
 
@@ -19,6 +17,10 @@ const getAbsoluteImageUrl = (path: string | undefined): string =>
     }
     return `${IMAGE_BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
 };
+
+
+const SIMULATED_COLORS = ["red", "blue", "green", "black"];
+const PRODUCT_SIZES = ["S", "M", "L", "XL"];
 
 
 const ProductPage: React.FC = () =>
@@ -37,6 +39,82 @@ const ProductPage: React.FC = () =>
 
     const [isSidebarOpen, setSidebarOpen] = useState(false);
 
+    // --- Derived State and Logic for Color/Image Sync ---
+
+    // 1. Get all available image URLs
+    const productImages = useMemo(() =>
+    {
+        if (!product) return [];
+        const rawImages = (product.images || []) && (product.images?.length || 0 > 0)
+            ? product.images!
+            : (product.cover_image ? [product.cover_image] : []);
+        return rawImages.map(getAbsoluteImageUrl);
+    }, [product]);
+
+    // 2. Map Image URL to Color (Simulating API matching logic)
+    const imageColorMap = useMemo(() =>
+    {
+        const map = new Map<string, string>();
+        productImages.forEach((imgUrl, index) =>
+        {
+            if (index < SIMULATED_COLORS.length)
+            {
+                map.set(imgUrl, SIMULATED_COLORS[index]);
+            }
+        });
+        return map;
+    }, [productImages]);
+
+    // 3. Map Color to Image URL
+    const colorImageMap = useMemo(() =>
+    {
+        const map = new Map<string, string>();
+        SIMULATED_COLORS.forEach((color, index) =>
+        {
+            if (index < productImages.length)
+            {
+                map.set(color, productImages[index]);
+            }
+        });
+        return map;
+    }, [productImages]);
+
+    // FIX 1: Utility to check if a color is available (has a mapped image)
+    const isColorAvailable = useCallback((color: string): boolean =>
+    {
+        return colorImageMap.has(color);
+    }, [colorImageMap]);
+
+
+    // --- Handlers for Two-Way Sync ---
+
+    const handleColorSelect = useCallback((color: string) =>
+    {
+        // Only allow selection if the color is available
+        if (!isColorAvailable(color)) return;
+
+        setSelectedColor(color);
+
+        const image = colorImageMap.get(color);
+        if (image)
+        {
+            setSelectedImage(image);
+        }
+    }, [colorImageMap, isColorAvailable]);
+
+    const handleImageSelect = useCallback((image: string) =>
+    {
+        setSelectedImage(image);
+
+        const color = imageColorMap.get(image);
+        if (color)
+        {
+            setSelectedColor(color);
+        }
+    }, [imageColorMap]);
+
+    // --- Initial Load Effect ---
+
     useEffect(() =>
     {
         if (isNaN(productId))
@@ -52,41 +130,36 @@ const ProductPage: React.FC = () =>
             setError(null);
             try
             {
-                // This correctly uses the provided service: productsApi.fetchProductById
                 const fetchedProduct = await productsApi.fetchProductById({ id: productId });
-
                 setProduct(fetchedProduct);
-
-                const availableImages = fetchedProduct.images && fetchedProduct.images.length > 0
-                    ? fetchedProduct.images
-                    : (fetchedProduct.cover_image ? [fetchedProduct.cover_image] : []);
-
                 setQuantity(1);
 
-                setSelectedImage(getAbsoluteImageUrl(availableImages[0]));
+                // Determine the first available color
+                const availableColors = SIMULATED_COLORS.filter(color => colorImageMap.has(color));
 
-                // Default selections are "red" and "S"
-                setSelectedColor("red");
-                setSelectedSize("S");
+                // Default selection is the first available color, or the first simulated color if maps are empty
+                const defaultColor = availableColors[0] || SIMULATED_COLORS[0] || "";
+                setSelectedColor(defaultColor);
+                setSelectedSize(PRODUCT_SIZES[0] || "");
+
+                // Set default image based on the default color mapping
+                const defaultImage = colorImageMap.get(defaultColor);
+
+                if (defaultImage)
+                {
+                    setSelectedImage(defaultImage);
+                } else
+                {
+                    // Fallback to the first raw image if mapping failed
+                    const availableImages = fetchedProduct.images && fetchedProduct.images.length > 0
+                        ? fetchedProduct.images
+                        : (fetchedProduct.cover_image ? [fetchedProduct.cover_image] : []);
+                    setSelectedImage(getAbsoluteImageUrl(availableImages[0]));
+                }
 
             } catch (err)
             {
-                // Removed axios.isAxiosError check to maintain abstraction.
-                // In a real app, you'd likely use a custom error type from your API service
-                // or check the error object's shape if you need specific status codes.
-                // For now, we revert to a general error message.
-
-                // if (axios.isAxiosError(err) && err.response?.status === 404)
-                // {
-                //     setError("Product not found.");
-                // } else
-                // {
-                //     setError("Failed to load product data.");
-                // }
-
-                // Fallback to a generic error message after removing the axios check
                 setError("Failed to load product data.");
-
                 console.error("Fetch error:", err);
             } finally
             {
@@ -94,8 +167,11 @@ const ProductPage: React.FC = () =>
             }
         };
 
+        // We call loadProduct directly, but we rely on the `useMemo` hooks (productImages, colorImageMap)
+        // being calculated *after* setProduct runs. This is handled naturally by React's rendering cycle.
         loadProduct();
     }, [productId]);
+
 
     const handleAddToCart = useCallback(async () =>
     {
@@ -123,18 +199,13 @@ const ProductPage: React.FC = () =>
             console.error("Error adding to cart:", e);
             alert("Could not add product to cart. Please try again.");
         }
-    }, [product, selectedColor, selectedSize, quantity]); // cartService.addToCart is stable, so removing it from deps for clarity
+    }, [product, selectedColor, selectedSize, quantity]);
+
 
     if (loading) return <div className="product-page-loading">Loading product details...</div>;
     if (error) return <div className="product-page-error">Error: {error}</div>;
     if (!product) return null;
 
-    // These should ideally come from the product object if available
-    const productColors = ["red", "blue", "green", "black"];
-    const productSizes = ["S", "M", "L", "XL"];
-
-    const rawProductImages = (product.images || []) && (product.images?.length || 0 > 0) ? product.images! : (product.cover_image ? [product.cover_image] : []);
-    const productImages = rawProductImages.map(getAbsoluteImageUrl);
 
     return (
         <>
@@ -147,7 +218,7 @@ const ProductPage: React.FC = () =>
                                 src={img}
                                 className={img === selectedImage ? "selected" : ""}
                                 alt={`${product.name} thumbnail ${idx + 1}`}
-                                onClick={() => setSelectedImage(img)}
+                                onClick={() => handleImageSelect(img)}
                             />
                         ))}
                     </div>
@@ -165,22 +236,27 @@ const ProductPage: React.FC = () =>
                         <span className="label">Color:</span>
                         <span className="current-selection">{selectedColor}</span>
                         <div className="color-options">
-                            {productColors.map((color, idx) => (
-                                <span
-                                    key={idx}
-                                    style={{ backgroundColor: color }}
-                                    className={`color-swatch ${color === selectedColor ? "selected" : ""}`}
-                                    title={color}
-                                    onClick={() => setSelectedColor(color)}
-                                ></span>
-                            ))}
+                            {SIMULATED_COLORS.map((color, idx) =>
+                            {
+                                const isAvailable = isColorAvailable(color); // FIX 2: Check availability
+
+                                return (
+                                    <span
+                                        key={idx}
+                                        style={{ backgroundColor: color }}
+                                        className={`color-swatch ${color === selectedColor ? "selected" : ""} ${!isAvailable ? "disabled" : ""}`} // FIX 3: Add disabled class
+                                        title={color + (!isAvailable ? " (Unavailable)" : "")}
+                                        onClick={() => isAvailable ? handleColorSelect(color) : undefined} // FIX 4: Conditional click handler
+                                    ></span>
+                                );
+                            })}
                         </div>
                     </div>
 
                     <div className="product-size">
                         <span className="label">Size:</span>
                         <div className="size-options">
-                            {productSizes.map((size, idx) => (
+                            {PRODUCT_SIZES.map((size, idx) => (
                                 <button
                                     key={idx}
                                     className={`size-button ${size === selectedSize ? "selected" : ""}`}
@@ -217,7 +293,7 @@ const ProductPage: React.FC = () =>
 
                     <div className="product-details">
                         <h3>Product Details</h3>
-                        <p>{product.brand.name}</p> {/* Removed 'b' prefix */}
+                        <p>{product.brand.name}</p>
                         <p>
                             This product contains regenerative cotton,
                             which is grown using farming methods that
