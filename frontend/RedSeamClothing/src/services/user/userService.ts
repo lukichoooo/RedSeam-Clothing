@@ -1,13 +1,41 @@
+// src/services/user/userService.ts
+
 import { type User } from "./user.types";
 
-// ususally fetched form backend
+const IMAGE_BASE_URL = 'https://api.redseam.redberryinternship.ge';
+
+const getAbsoluteImageUrl = (path: string | undefined): string | undefined =>
+{
+    if (!path)
+    {
+        return undefined;
+    }
+    if (path.startsWith('http'))
+    {
+        return path;
+    }
+    return `${IMAGE_BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
+};
+
+
 const userService = {
     getUserFromLocalStorage(): User | null
     {
         const userString = localStorage.getItem('user');
         if (userString)
         {
-            return JSON.parse(userString) as User;
+            const user: User = JSON.parse(userString) as User;
+
+            const absolutePhotoUrl = getAbsoluteImageUrl(user.profile_photo);
+            if (absolutePhotoUrl)
+            {
+                user.profile_photo = absolutePhotoUrl;
+            } else
+            {
+                user.profile_photo = '';
+            }
+
+            return user;
         }
         return null;
     },

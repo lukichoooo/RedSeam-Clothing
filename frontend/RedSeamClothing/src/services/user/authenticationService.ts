@@ -1,13 +1,17 @@
+import { triggerAuthUpdate } from "../../utils/authSync";
 import api from "../api";
+
+export interface User
+{
+    email: string;
+    id: number;
+    name: string;
+    profile_photo: string; // The URL you want to use
+}
 
 export interface LoginResponse
 {
-    user: {
-        email: string;
-        id: number;
-        name: string;
-        profile_photo: string;
-    };
+    user: User;
     token: string;
 }
 
@@ -28,6 +32,13 @@ export interface RegisterPayload
     username: string;
 }
 
+// Helper function to save credentials
+const saveAuthData = (data: LoginResponse): void =>
+{
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+};
+
 const authenticationService = {
     // Login
     login: async (payload: LoginPayload): Promise<LoginResponse> =>
@@ -37,6 +48,11 @@ const authenticationService = {
                 Accept: "application/json",
             },
         });
+
+        // ✅ Save the token and user object upon successful login
+        saveAuthData(data);
+        triggerAuthUpdate();
+
         return data;
     },
 
@@ -55,11 +71,14 @@ const authenticationService = {
                 Accept: "application/json",
             },
         });
+
+        saveAuthData(data);
+
         return data;
     },
 
     // Logout
-    logout: async (): Promise<void> =>
+    logout: (): void => // Changed to void since it's only synchronous localStorage calls
     {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
