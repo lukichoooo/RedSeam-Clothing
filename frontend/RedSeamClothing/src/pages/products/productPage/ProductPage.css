@@ -42,6 +42,13 @@
     gap: 20px;
 }
 
+.brand-logo {
+    display: inline-block;
+    width: 60px;
+    right: 80px;
+    position: absolute;
+}
+
 .color-options {
     display: flex;
     gap: 8px;

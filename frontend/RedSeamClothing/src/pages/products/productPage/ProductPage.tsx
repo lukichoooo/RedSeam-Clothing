@@ -289,11 +289,9 @@ const ProductPage: React.FC = () =>
                             ))}
                         </select>
                     </div>
-
                     <button
                         className="add-to-cart"
                         onClick={handleAddToCart}
-                        // Check for quantity > 0 as well
                         disabled={!selectedColor || !selectedSize || quantity < 1}
                     >
                         Add to Cart
@@ -301,7 +299,14 @@ const ProductPage: React.FC = () =>
 
                     <div className="product-details">
                         <h3>Product Details</h3>
-                        <p>{product.brand.name}</p>
+                        <p className="product-brand"> {/* Added a wrapper class for styling */}
+                            <span>Brand: {product.brand.name}</span> {/* Wrapped the text in a span */}
+                            <img
+                                className="brand-logo"
+                                src={product.brand.image}
+                                alt="brand logo"
+                            />
+                        </p>
                         <p>
                             This product contains regenerative cotton,
                             which is grown using farming methods that
@@ -309,6 +314,7 @@ const ProductPage: React.FC = () =>
                             and biodiversity
                         </p>
                     </div>
+
                 </div>
             </div>
 
