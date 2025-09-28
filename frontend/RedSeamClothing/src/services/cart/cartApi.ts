@@ -60,7 +60,11 @@ export const cartApi = {
             size
         };
 
-        await api.delete(`/cart/products/${productId}`, { data: payload });
+        await api.request({
+            method: 'DELETE',
+            url: `/cart/products/${productId}`,
+            data: payload
+        });
     },
 
 
